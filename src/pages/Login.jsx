@@ -15,7 +15,7 @@ export default function Login() {
     setMessage({ type: '', text: '' });
     try {
       await login(email, password);
-      navigate('/courses');
+      navigate('/dashboard');
     } catch (err) {
       setMessage({ type: 'error', text: err.message || 'Invalid email or password.' });
     }
@@ -163,7 +163,7 @@ export default function Login() {
               <p className="text-[16px] text-[#414844]">
                 New to Terraform Edu?{' '}
                 <Link to="/register" className="font-semibold text-[#0e6c4a] transition hover:text-[#012d1d]">
-                  Join as Student
+                  Register
                 </Link>
               </p>
             </div>
