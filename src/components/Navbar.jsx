@@ -36,9 +36,9 @@ export default function Navbar() {
   }
 
   return (
-    <div className="sticky top-0 z-50 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+    <div className="sticky top-0 z-50 bg-slate-50/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 backdrop-blur-sm">
       <div className="max-w-[1280px] mx-auto px-4 md:px-10 py-3">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 text-2xl font-bold text-slate-950 dark:text-white">
             <span className="material-symbols-outlined text-3xl text-emerald-700">eco</span>
             AgriGrow

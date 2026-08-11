@@ -18,10 +18,10 @@ export default function DashboardPage() {
           </p>
         </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
           <div className="md:col-span-8 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgba(27,67,50,0.05)] border-t-4 border-emerald-600 flex flex-col justify-between">
             <div>
-              <div className="flex justify-between items-start mb-6">
+              <div className="flex justify-between items-start gap-4 mb-5">
                 <span className="inline-flex items-center rounded-full bg-emerald-100 text-emerald-900 px-3 py-1 text-sm font-semibold">
                   Active Course
                 </span>
@@ -32,7 +32,7 @@ export default function DashboardPage() {
               <h2 className="text-2xl md:text-3xl font-semibold text-slate-900 dark:text-white mb-4">
                 Soil Microbiology &amp; Health
               </h2>
-              <p className="text-sm md:text-base text-slate-600 dark:text-slate-400 max-w-2xl mb-6">
+              <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 max-w-2xl mb-8">
                 Module 3: Understanding beneficial nematodes and their role in organic pest management and soil aeration.
               </p>
             </div>
@@ -45,8 +45,8 @@ export default function DashboardPage() {
               <div className="h-4 w-full rounded-full overflow-hidden bg-slate-200 dark:bg-slate-800 shadow-inner">
                 <div className="h-full rounded-full bg-emerald-600 progress-pattern" style={{ width: '75%' }} />
               </div>
-              <div className="mt-6 flex justify-end">
-                <button className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition">
+              <div className="mt-8 flex justify-end">
+                <button className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white px-6 py-3 rounded-xl text-sm font-semibold transition">
                   Continue Learning
                   <span className="material-symbols-outlined">arrow_forward</span>
                 </button>
@@ -89,7 +89,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="md:col-span-12">
-            <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-5">
+            <h3 className="text-2xl font-semibold text-slate-900 dark:text-white mb-6">
               Recent Achievements
             </h3>
             <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar snap-x">
