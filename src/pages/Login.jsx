@@ -163,7 +163,7 @@ export default function Login() {
               <p className="text-[16px] text-[#414844]">
                 New to Terraform Edu?{' '}
                 <Link to="/register" className="font-semibold text-[#0e6c4a] transition hover:text-[#012d1d]">
-                  Join as Student
+                  Register
                 </Link>
               </p>
             </div>

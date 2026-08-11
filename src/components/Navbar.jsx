@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Wallet, BookOpen, Shield, LogOut, Sun, Moon } from 'lucide-react';
+import { Wallet, BookOpen, Shield, LogOut, Sun, Moon, GraduationCap } from 'lucide-react';
 
 export default function Navbar({ darkMode, setDarkMode }) {
   const { user, logout } = useContext(AuthContext);
@@ -13,24 +13,25 @@ export default function Navbar({ darkMode, setDarkMode }) {
   };
 
   return (
-    <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4 flex justify-between items-center transition-colors">
-      <Link to="/" className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
-        EduPlatform
+    <nav className="flex items-center justify-between border-b border-[#dfe4df] bg-[#f9f9f8] px-4 py-4 text-[#012d1d] transition-colors sm:px-6 lg:px-8">
+      <Link to="/" className="flex items-center gap-2 text-[20px] font-semibold tracking-tight text-[#012d1d] transition hover:text-[#0e6c4a]">
+        <GraduationCap className="h-6 w-6" />
+        Terraform Edu
       </Link>
 
-      <div className="flex items-center space-x-6">
+      <div className="flex items-center gap-3 sm:gap-5">
         {user && (
           <>
-            <Link to="/courses" className="flex items-center text-gray-700 dark:text-gray-200 hover:text-indigo-600">
+            <Link to="/courses" className="flex items-center text-sm font-medium text-[#414844] transition hover:text-[#0e6c4a]">
               <BookOpen className="w-4 h-4 mr-1" /> Courses
             </Link>
 
-            <Link to="/wallet" className="flex items-center text-gray-700 dark:text-gray-200 hover:text-indigo-600">
+            <Link to="/wallet" className="flex items-center text-sm font-medium text-[#414844] transition hover:text-[#0e6c4a]">
               <Wallet className="w-4 h-4 mr-1" /> Wallet
             </Link>
 
             {user.role === 'ADMIN' && (
-              <Link to="/admin" className="flex items-center text-rose-600 font-semibold hover:text-rose-700">
+              <Link to="/admin" className="flex items-center text-sm font-semibold text-[#0e6c4a] transition hover:text-[#012d1d]">
                 <Shield className="w-4 h-4 mr-1" /> Admin
               </Link>
             )}
@@ -39,7 +40,8 @@ export default function Navbar({ darkMode, setDarkMode }) {
 
         <button
           onClick={() => setDarkMode(!darkMode)}
-          className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+          aria-label={darkMode ? 'Use light theme' : 'Use dark theme'}
+          className="rounded-md bg-[#edf5ef] p-2 text-[#414844] transition hover:bg-[#dcecdf] hover:text-[#012d1d]"
         >
           {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
@@ -47,16 +49,16 @@ export default function Navbar({ darkMode, setDarkMode }) {
         {user ? (
           <button
             onClick={handleLogout}
-            className="flex items-center bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm"
+            className="flex items-center rounded-md bg-[#012d1d] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#0e6c4a]"
           >
             <LogOut className="w-4 h-4 mr-1" /> Logout
           </button>
         ) : (
-          <div className="space-x-3">
-            <Link to="/login" className="text-indigo-600 dark:text-indigo-400 font-medium">
+          <div className="flex items-center gap-3">
+            <Link to="/login" className="text-sm font-semibold text-[#0e6c4a] transition hover:text-[#012d1d]">
               Login
             </Link>
-            <Link to="/register" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+            <Link to="/register" className="rounded-md bg-[#0e6c4a] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f5d44]">
               Register
             </Link>
           </div>

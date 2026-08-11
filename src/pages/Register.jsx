@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { Mail, Lock, UserRound, GraduationCap, BriefcaseBusiness } from 'lucide-react';
 
 export default function Register() {
   const [username, setUsername] = useState('');
@@ -22,100 +23,100 @@ export default function Register() {
     }
   };
 
+  const inputClass = 'block w-full rounded-md border border-[#c1c8c2] bg-[#f3f4f3] py-3 pl-10 pr-3 text-[#191c1c] shadow-inner transition focus:border-[#012d1d] focus:outline-none focus:ring-1 focus:ring-[#0e6c4a]';
+  const labelClass = 'mb-1 block text-[14px] font-semibold uppercase tracking-[0.05em] text-[#191c1c]';
+
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-5xl overflow-hidden rounded-3xl border border-gray-200/70 bg-white shadow-[0_25px_80px_-20px_rgba(15,23,42,0.25)] dark:border-gray-800 dark:bg-gray-900">
-        <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-fuchsia-600 via-violet-600 to-indigo-600 p-10 text-white">
-            <div>
-              <div className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-sm font-medium backdrop-blur">
-                Start learning today
-              </div>
-              <h2 className="mt-6 text-3xl font-semibold leading-tight">Build your future with courses that inspire real growth.</h2>
-              <p className="mt-4 text-sm text-indigo-100/90">Create your account to unlock lessons, track progress, and connect with expert-led education.</p>
+    <div className="min-h-[calc(100vh-6rem)] bg-[#f9f9f8] px-3 py-4 sm:px-6 lg:px-0 lg:py-0">
+      <div className="mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-6xl flex-col overflow-hidden rounded-[24px] border border-[#dfe4df] bg-white shadow-[0_20px_70px_-25px_rgba(1,45,29,0.28)] lg:flex-row">
+        <div className="relative hidden overflow-hidden bg-[#edf5ef] lg:flex lg:w-1/2">
+          <div className="absolute inset-0">
+            <div
+              className="h-full w-full bg-cover bg-center"
+              style={{
+                backgroundImage:
+                  "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCPK6VVpLmReBrQm-JqOtIjW6knZtOh_cW3IqGi0ZZdVm9eCsICggHefi6LyP2n5TCHWDp2FF6V2J1sLS1jpjeoEamDG7y2yNxlwMIOZDzf4D-1lQR0yYf7nJiaUZjD5hkanU0x3iPhJip3dkXFl_uxKW07rtCtH4s5OG8hOXSzdeQJGRcXwvKbGQWqL3jrDPYbGutDuD1lKGqPlZWKw6cMWrimIdVYmNuBDEaIAUV_WWBhfoXxmICm')",
+              }}
+            />
+            <div className="absolute inset-0 bg-[#1b4332]/20" />
+          </div>
+          <div className="relative z-10 flex h-full flex-col justify-between p-10 text-white">
+            <div className="flex items-center gap-2">
+              <GraduationCap className="h-8 w-8" />
+              <span className="text-[24px] font-semibold tracking-tight">Terraform Edu</span>
             </div>
-            <div className="rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur">
-              <p className="text-sm font-medium">What you get</p>
-              <ul className="mt-3 space-y-2 text-sm text-indigo-100">
-                <li>• Instant access to your dashboard</li>
-                <li>• Flexible student or teacher experience</li>
-                <li>• Secure and modern onboarding</li>
-              </ul>
+            <div className="max-w-md">
+              <h1 className="mb-4 text-[48px] font-semibold leading-tight tracking-[-0.02em]">Grow your career with Daltex</h1>
+              <p className="text-[18px] leading-7 text-white/90">
+                Learn the practical skills, tools, and standards that shape modern agriculture at Daltex.
+              </p>
             </div>
           </div>
+        </div>
 
-          <div className="p-8 sm:p-10 lg:p-12">
+        <div className="flex flex-1 flex-col justify-center bg-[#f9f9f8] px-4 py-8 sm:px-8 md:px-10 lg:px-12 xl:px-14">
+          <div className="mx-auto w-full max-w-md">
             <div className="mb-8 text-center lg:text-left">
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-fuchsia-500">Create Account</p>
-              <h2 className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">Join the platform</h2>
-              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Set up your profile and start exploring courses.</p>
+              <div className="mb-3 flex items-center justify-center gap-2 text-[#012d1d] lg:justify-start">
+                <GraduationCap className="h-6 w-6" />
+                <span className="text-[20px] font-semibold">Terraform Edu</span>
+              </div>
+              <h2 className="mb-2 text-[32px] font-semibold text-[#012d1d]">Create your account</h2>
+              <p className="text-[16px] text-[#414844]">Start learning the skills that move Daltex forward.</p>
             </div>
 
             {message.text && (
-              <div className={`mb-5 rounded-xl border px-4 py-3 text-sm ${message.type === 'success' ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/50 dark:text-green-400' : 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/50 dark:text-red-400'}`}>
+              <div className={`mb-5 rounded-md border px-4 py-3 text-sm ${message.type === 'success' ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700'}`}>
                 {message.text}
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
-                <input
-                  type="text"
-                  required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-fuchsia-900"
-                  placeholder="Choose a username"
-                />
+                <label className={labelClass} htmlFor="username">Full Name</label>
+                <div className="relative rounded-md shadow-sm">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><UserRound className="h-4 w-4 text-[#717973]" /></div>
+                  <input id="username" type="text" required value={username} onChange={(e) => setUsername(e.target.value)} className={inputClass} placeholder="Your full name" />
+                </div>
               </div>
+
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Email Address</label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-fuchsia-900"
-                  placeholder="you@example.com"
-                />
+                <label className={labelClass} htmlFor="email">Email Address</label>
+                <div className="relative rounded-md shadow-sm">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><Mail className="h-4 w-4 text-[#717973]" /></div>
+                  <input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} placeholder="student@example.com" />
+                </div>
               </div>
+
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-fuchsia-900"
-                  placeholder="Create a strong password"
-                />
+                <label className={labelClass} htmlFor="password">Password</label>
+                <div className="relative rounded-md shadow-sm">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><Lock className="h-4 w-4 text-[#717973]" /></div>
+                  <input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} placeholder="Create a strong password" />
+                </div>
               </div>
+
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Role</label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-fuchsia-900"
-                >
-                  <option value="STUDENT">Student</option>
-                  <option value="TEACHER">Teacher</option>
-                </select>
+                <label className={labelClass} htmlFor="role">I am joining as</label>
+                <div className="relative rounded-md shadow-sm">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><BriefcaseBusiness className="h-4 w-4 text-[#717973]" /></div>
+                  <select id="role" value={role} onChange={(e) => setRole(e.target.value)} className={`${inputClass} appearance-none`}>
+                    <option value="STUDENT">Student</option>
+                    <option value="TEACHER">Instructor</option>
+                  </select>
+                </div>
               </div>
-              <button
-                type="submit"
-                className="w-full rounded-xl bg-gradient-to-r from-fuchsia-600 to-violet-600 px-4 py-3 font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition hover:translate-y-[-1px] hover:shadow-fuchsia-500/30"
-              >
-                Register
+
+              <button type="submit" className="flex w-full justify-center rounded-md border border-transparent bg-[#0e6c4a] px-4 py-3 text-[14px] font-semibold uppercase tracking-[0.05em] text-white shadow-sm transition hover:bg-[#0f5d44] focus:outline-none focus:ring-2 focus:ring-[#0e6c4a] focus:ring-offset-2">
+                Create account
               </button>
             </form>
 
-            <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-              Already have an account?{' '}
-              <Link to="/login" className="font-semibold text-fuchsia-600 transition hover:text-fuchsia-500 dark:text-fuchsia-400">
-                Log In
-              </Link>
-            </p>
+            <div className="mt-8 text-center">
+              <p className="text-[16px] text-[#414844]">
+                Already have an account? <Link to="/login" className="font-semibold text-[#0e6c4a] transition hover:text-[#012d1d]">Log in</Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>
