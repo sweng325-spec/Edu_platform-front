@@ -3,13 +3,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
-import AdminRoute from './components/AdminRoute';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
 import WalletPage from './pages/WalletPage';
 import CoursesPage from './pages/CoursesPage';
-import AdminDashboard from './pages/AdminDashboard';
+import DashboardPage from './pages/DashboardPage';
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(
@@ -33,12 +32,13 @@ export default function App() {
           <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
           <main className="max-w-7xl mx-auto p-6">
             <Routes>
-              <Route path="/" element={<Navigate to="/courses" replace />} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
               <Route path="/courses" element={<ProtectedRoute><CoursesPage /></ProtectedRoute>} />
-              <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+              <Route path="/admin" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </main>
         </Router>

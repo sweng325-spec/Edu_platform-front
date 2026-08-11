@@ -15,7 +15,7 @@ export default function Login() {
     setMessage({ type: '', text: '' });
     try {
       await login(email, password);
-      navigate('/courses');
+      navigate('/dashboard');
     } catch (err) {
       setMessage({ type: 'error', text: err.message || 'Invalid email or password.' });
     }
