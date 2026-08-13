@@ -1,205 +1,38 @@
-import React, { useContext } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { useContext } from 'react';
+import { ArrowRight, BookOpen, CalendarDays, CheckCircle2, Clock3, Flame, Leaf, Play, Trophy, WalletCards } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+
+const achievements = [
+  { title: 'Irrigation expert', detail: 'Advanced drip systems', icon: '💧', color: 'bg-sky-50' },
+  { title: 'Soil steward', detail: 'Healthy soil foundations', icon: '🌱', color: 'bg-emerald-50' },
+  { title: 'Solar innovator', detail: 'Greenhouse essentials', icon: '☀️', color: 'bg-amber-50' },
+];
 
 export default function DashboardPage() {
   const { user } = useContext(AuthContext);
-  const userName = user?.username || user?.name || user?.email?.split('@')[0] || 'Alex';
+  const userName = user?.username || user?.name || user?.email?.split('@')[0] || 'Learner';
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans">
-      <main className="flex-grow w-full max-w-[1100px] mx-auto px-4 md:px-8 py-10">
-        <section className="mb-10">
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-950 dark:text-white mb-2">
-            Welcome back, {userName}
-          </h1>
-          <p className="text-base text-slate-600 dark:text-slate-400">
-            Here's your latest progress in agricultural technology.
-          </p>
-        </section>
+    <div className="mx-auto max-w-[1100px] space-y-7 pb-10">
+      <section className="relative overflow-hidden rounded-[30px] bg-[#123f30] px-6 py-9 text-white shadow-[0_18px_45px_-24px_rgba(17,74,54,0.8)] sm:px-10">
+        <div className="absolute -right-12 -top-16 h-64 w-64 rounded-full border-[30px] border-[#b8dc8d]/20" />
+        <div className="absolute bottom-0 right-36 h-28 w-28 rounded-t-full bg-white/5" />
+        <div className="relative flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between"><div><span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#d9edc7]"><Leaf className="h-3.5 w-3.5" /> Daltex learning hub</span><h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">Good to see you, {userName}.</h1><p className="mt-3 max-w-xl text-base leading-7 text-white/75">A little progress today grows into expertise tomorrow. Let’s keep your learning moving.</p></div><div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-sm"><span className="rounded-xl bg-[#b8dc8d]/20 p-2 text-[#d9edc7]"><Flame className="h-5 w-5" /></span><div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/60">Learning streak</p><p className="mt-1 text-lg font-semibold">14 days</p></div></div></div>
+      </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-          <div className="md:col-span-8 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgba(27,67,50,0.05)] border-t-4 border-emerald-600 flex flex-col justify-between">
-            <div>
-              <div className="flex justify-between items-start gap-4 mb-5">
-                <span className="inline-flex items-center rounded-full bg-emerald-100 text-emerald-900 px-3 py-1 text-sm font-semibold">
-                  Active Course
-                </span>
-                <button className="text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full p-2 transition">
-                  <span className="material-symbols-outlined">more_vert</span>
-                </button>
-              </div>
-              <h2 className="text-2xl md:text-3xl font-semibold text-slate-900 dark:text-white mb-4">
-                Soil Microbiology &amp; Health
-              </h2>
-              <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 max-w-2xl mb-8">
-                Module 3: Understanding beneficial nematodes and their role in organic pest management and soil aeration.
-              </p>
-            </div>
+      <section className="grid grid-cols-1 gap-5 md:grid-cols-3">
+        <div className="rounded-[25px] border border-[#dbe7dc] bg-white p-5 shadow-[0_10px_30px_rgba(27,67,50,0.05)] dark:border-slate-800 dark:bg-slate-900"><div className="flex items-center justify-between"><span className="rounded-2xl bg-[#e6f2e8] p-3 text-[#16623f] dark:bg-emerald-950 dark:text-emerald-300"><CheckCircle2 className="h-5 w-5" /></span><span className="text-sm font-semibold text-emerald-700">+2 this week</span></div><p className="mt-5 text-sm text-slate-500">Modules completed</p><p className="mt-1 text-3xl font-semibold text-slate-900 dark:text-white">14 <span className="text-base font-medium text-slate-400">/ 20</span></p></div>
+        <div className="rounded-[25px] border border-[#dbe7dc] bg-white p-5 shadow-[0_10px_30px_rgba(27,67,50,0.05)] dark:border-slate-800 dark:bg-slate-900"><div className="flex items-center justify-between"><span className="rounded-2xl bg-[#fff4dc] p-3 text-[#a66713] dark:bg-amber-950 dark:text-amber-300"><Clock3 className="h-5 w-5" /></span><span className="text-sm font-semibold text-amber-700">This season</span></div><p className="mt-5 text-sm text-slate-500">Practical hours</p><p className="mt-1 text-3xl font-semibold text-slate-900 dark:text-white">45 <span className="text-base font-medium text-slate-400">hrs</span></p></div>
+        <Link to="/wallet" className="group rounded-[25px] bg-[#e6f2e8] p-5 transition hover:-translate-y-1 hover:bg-[#d9edc7] dark:bg-emerald-950/50"><div className="flex items-center justify-between"><span className="rounded-2xl bg-white/70 p-3 text-[#16623f] dark:bg-slate-900 dark:text-emerald-300"><WalletCards className="h-5 w-5" /></span><ArrowRight className="h-5 w-5 text-[#16623f] transition group-hover:translate-x-1" /></div><p className="mt-5 text-sm text-[#416653] dark:text-emerald-200">AgriCredits available</p><p className="mt-1 text-3xl font-semibold text-[#123f30] dark:text-white">1,250</p></Link>
+      </section>
 
-            <div>
-              <div className="flex items-center justify-between mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                <span>Progress</span>
-                <span className="text-emerald-700">75%</span>
-              </div>
-              <div className="h-4 w-full rounded-full overflow-hidden bg-slate-200 dark:bg-slate-800 shadow-inner">
-                <div className="h-full rounded-full bg-emerald-600 progress-pattern" style={{ width: '75%' }} />
-              </div>
-              <div className="mt-8 flex justify-end">
-                <button className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white px-6 py-3 rounded-xl text-sm font-semibold transition">
-                  Continue Learning
-                  <span className="material-symbols-outlined">arrow_forward</span>
-                </button>
-              </div>
-            </div>
-          </div>
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+        <article className="relative overflow-hidden rounded-[28px] bg-white p-6 shadow-[0_10px_30px_rgba(27,67,50,0.07)] ring-1 ring-[#dbe7dc] dark:bg-slate-900 dark:ring-slate-800 lg:col-span-3"><div className="absolute right-0 top-0 h-28 w-28 rounded-bl-[70px] bg-[#e6f2e8]" /><div className="relative"><span className="inline-flex rounded-full bg-[#e6f2e8] px-3 py-1 text-xs font-semibold text-[#16623f] dark:bg-emerald-950 dark:text-emerald-300">Continue learning</span><h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">Soil Microbiology &amp; Health</h2><p className="mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-300">Module 3: Discover how beneficial nematodes support organic pest management and healthy soil aeration.</p><div className="mt-7"><div className="mb-2 flex justify-between text-sm font-semibold text-slate-600 dark:text-slate-300"><span>Course progress</span><span className="text-emerald-700">75%</span></div><div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div className="h-full w-3/4 rounded-full bg-[#1b7049] progress-pattern" /></div></div><Link to="/courses" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#16623f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#104d32]"><Play className="h-4 w-4 fill-current" /> Continue lesson</Link></div></article>
+        <aside className="rounded-[28px] bg-[#f4f8f3] p-6 dark:bg-slate-900 lg:col-span-2"><div className="flex items-center justify-between"><div><p className="text-sm font-semibold uppercase tracking-[0.12em] text-emerald-700">Up next</p><h2 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">Your learning plan</h2></div><CalendarDays className="h-6 w-6 text-[#16623f]" /></div><div className="mt-5 space-y-3"><div className="rounded-2xl bg-white p-4 shadow-sm dark:bg-slate-800"><p className="text-sm font-semibold text-slate-800 dark:text-white">Complete the soil sample quiz</p><p className="mt-1 text-xs text-slate-500">15 min · Due today</p></div><div className="rounded-2xl bg-white p-4 shadow-sm dark:bg-slate-800"><p className="text-sm font-semibold text-slate-800 dark:text-white">Review irrigation field notes</p><p className="mt-1 text-xs text-slate-500">20 min · Tomorrow</p></div></div><Link to="/courses" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#16623f] hover:text-[#104d32]">View all courses <ArrowRight className="h-4 w-4" /></Link></aside>
+      </section>
 
-          <div className="md:col-span-4 flex flex-col gap-6">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgba(27,67,50,0.05)] flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-900 flex items-center justify-center text-2xl">
-                <span className="material-symbols-outlined">eco</span>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400 mb-1">
-                  AgriCredits
-                </p>
-                <p className="text-3xl font-semibold text-slate-900 dark:text-white">1,250</p>
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgba(27,67,50,0.05)] flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-100 flex items-center justify-center text-2xl">
-                <span className="material-symbols-outlined">library_add_check</span>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400 mb-1">
-                  Completed Modules
-                </p>
-                <p className="text-3xl font-semibold text-slate-900 dark:text-white">14</p>
-              </div>
-            </div>
-
-            <Link
-              to="/courses"
-              className="inline-flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white py-3 rounded-xl text-sm font-semibold transition shadow-sm"
-            >
-              View my to-do list
-              <span className="material-symbols-outlined text-[20px]">chevron_right</span>
-            </Link>
-          </div>
-
-          <div className="md:col-span-12">
-            <h3 className="text-2xl font-semibold text-slate-900 dark:text-white mb-6">
-              Recent Achievements
-            </h3>
-            <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar snap-x">
-              <div className="min-w-[160px] bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col items-center gap-3 snap-center hover:-translate-y-1 transition-transform cursor-pointer relative">
-                <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-900 flex items-center justify-center text-3xl">
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>water_drop</span>
-                </div>
-                <span className="text-sm font-semibold text-slate-900 dark:text-white">Irrigation Expert</span>
-                <div className="absolute bottom-full mb-2 hidden group-hover:block w-52 bg-slate-900 text-white text-xs p-2 rounded-xl text-center shadow-lg">
-                  Completed Advanced Drip Systems module with 95% accuracy.
-                </div>
-              </div>
-              <div className="min-w-[160px] bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col items-center gap-3 snap-center hover:-translate-y-1 transition-transform cursor-pointer relative">
-                <div className="w-16 h-16 rounded-full bg-slate-800 text-white flex items-center justify-center text-3xl">
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>psychiatry</span>
-                </div>
-                <span className="text-sm font-semibold text-slate-900 dark:text-white">Seed Saver</span>
-                <div className="absolute bottom-full mb-2 hidden group-hover:block w-52 bg-slate-900 text-white text-xs p-2 rounded-xl text-center shadow-lg">
-                  Successfully harvested and cataloged 5 heirloom seed varieties.
-                </div>
-              </div>
-              <div className="min-w-[160px] bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col items-center gap-3 snap-center hover:-translate-y-1 transition-transform cursor-pointer relative">
-                <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-900 flex items-center justify-center text-3xl">
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>solar_power</span>
-                </div>
-                <span className="text-sm font-semibold text-slate-900 dark:text-white">Solar Innovator</span>
-                <div className="absolute bottom-full mb-2 hidden group-hover:block w-52 bg-slate-900 text-white text-xs p-2 rounded-xl text-center shadow-lg">
-                  Designed a theoretical solar-powered automated greenhouse.
-                </div>
-              </div>
-              <div className="min-w-[160px] bg-slate-100 dark:bg-slate-800 rounded-3xl p-5 border border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center gap-3 snap-center opacity-70">
-                <div className="w-16 h-16 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 flex items-center justify-center text-3xl">
-                  <span className="material-symbols-outlined">lock</span>
-                </div>
-                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Next Milestone</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="md:col-span-12 grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgba(27,67,50,0.05)] border border-slate-200 dark:border-slate-700">
-              <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">Your Notes</h3>
-              <div className="space-y-4 text-sm text-slate-600 dark:text-slate-400">
-                <p className="bg-slate-50 dark:bg-slate-800 rounded-3xl p-4">Review your soil sample report before the next lab session.</p>
-                <p className="bg-slate-50 dark:bg-slate-800 rounded-3xl p-4">Schedule a field check for the irrigation system on Friday.</p>
-              </div>
-            </div>
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgba(27,67,50,0.05)] border border-slate-200 dark:border-slate-700">
-              <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">Season Stats</h3>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm text-slate-500 mb-2">
-                    <span>Modules Completed</span>
-                    <span className="font-semibold text-slate-900 dark:text-white">12 / 20</span>
-                  </div>
-                  <div className="h-2 w-full rounded-full inset-depth overflow-hidden bg-slate-200 dark:bg-slate-800">
-                    <div className="h-full rounded-full bg-emerald-600" style={{ width: '60%' }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm text-slate-500 mb-2">
-                    <span>Practical Hours</span>
-                    <span className="font-semibold text-slate-900 dark:text-white">45 hrs</span>
-                  </div>
-                  <div className="h-2 w-full rounded-full inset-depth overflow-hidden bg-slate-200 dark:bg-slate-800">
-                    <div className="h-full rounded-full bg-emerald-900" style={{ width: '75%' }} />
-                  </div>
-                </div>
-                <div className="pt-4 border-t border-slate-200 dark:border-slate-700 mt-4 flex justify-between items-center text-sm text-slate-500">
-                  <span>Current Streak</span>
-                  <span className="font-semibold text-amber-600">14 Days</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      <nav className="fixed bottom-0 left-0 w-full z-50 md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
-        <div className="flex justify-around items-center px-4 py-3">
-          <Link
-            to="/courses"
-            className="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 active:scale-95 p-2 rounded-2xl"
-          >
-            <span className="material-symbols-outlined mb-1">potted_plant</span>
-            <span className="text-[10px] leading-tight">Learn</span>
-          </Link>
-          <Link
-            to="/dashboard"
-            className="flex flex-col items-center justify-center bg-emerald-100 text-emerald-700 rounded-full px-4 py-2 active:scale-95 transition-all"
-          >
-            <span className="material-symbols-outlined mb-1">dashboard</span>
-            <span className="text-[10px] leading-tight">Dashboard</span>
-          </Link>
-          <Link
-            to="/wallet"
-            className="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 active:scale-95 p-2 rounded-2xl"
-          >
-            <span className="material-symbols-outlined mb-1">account_balance_wallet</span>
-            <span className="text-[10px] leading-tight">Wallet</span>
-          </Link>
-          <Link
-            to="/dashboard"
-            className="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 active:scale-95 p-2 rounded-2xl"
-          >
-            <span className="material-symbols-outlined mb-1">person</span>
-            <span className="text-[10px] leading-tight">Profile</span>
-          </Link>
-        </div>
-      </nav>
+      <section className="rounded-[28px] border border-[#dbe7dc] bg-white p-6 shadow-[0_10px_30px_rgba(27,67,50,0.05)] dark:border-slate-800 dark:bg-slate-900"><div className="flex items-end justify-between"><div><p className="text-sm font-semibold uppercase tracking-[0.12em] text-emerald-700">Keep growing</p><h2 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">Recent achievements</h2></div><Trophy className="h-6 w-6 text-[#c4851b]" /></div><div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">{achievements.map((achievement) => <article key={achievement.title} className="flex items-center gap-4 rounded-2xl border border-slate-100 p-4 transition hover:border-emerald-200 hover:shadow-sm dark:border-slate-800"><span className={`flex h-12 w-12 items-center justify-center rounded-2xl text-2xl ${achievement.color} dark:bg-slate-800`}>{achievement.icon}</span><div><h3 className="text-sm font-semibold text-slate-800 dark:text-white">{achievement.title}</h3><p className="mt-1 text-xs text-slate-500">{achievement.detail}</p></div></article>)}</div><Link to="/courses" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#16623f] hover:text-[#104d32]"><BookOpen className="h-4 w-4" /> Discover a new course</Link></section>
     </div>
   );
 }

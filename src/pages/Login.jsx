@@ -14,8 +14,8 @@ export default function Login() {
     e.preventDefault();
     setMessage({ type: '', text: '' });
     try {
-      await login(email, password);
-      navigate('/dashboard');
+      const { home } = await login(email, password);
+      navigate(home, { replace: true });
     } catch (err) {
       setMessage({ type: 'error', text: err.message || 'Invalid email or password.' });
     }

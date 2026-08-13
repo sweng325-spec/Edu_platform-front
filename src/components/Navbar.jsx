@@ -1,12 +1,13 @@
-﻿import React, { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { isInstructor } from '../utils/roles';
 
-const navItems = [
-  { to: '/courses', label: 'Courses' },
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/wallet', label: 'Wallet' },
-];
+const navigationFor = (role) => {
+  if (role === 'ADMIN') return [{ to: '/admin', label: 'Dashboard' }, { to: '/admin/users', label: 'Users' }, { to: '/admin/students', label: 'Students' }, { to: '/admin/instructors', label: 'Instructors' }, { to: '/admin/courses', label: 'Courses' }, { to: '/admin/enrollments', label: 'Enrollments' }, { to: '/admin/statistics', label: 'Statistics' }, { to: '/admin/settings', label: 'Settings' }];
+  if (isInstructor(role)) return [{ to: '/instructor', label: 'Dashboard' }, { to: '/instructor/courses', label: 'My Courses' }, { to: '/instructor/lessons', label: 'Lessons' }, { to: '/instructor/assignments', label: 'Assignments' }, { to: '/instructor/quizzes', label: 'Quizzes' }, { to: '/instructor/students', label: 'Students' }, { to: '/instructor/performance', label: 'Performance' }];
+  return [{ to: '/student', label: 'Dashboard' }, { to: '/courses', label: 'Browse Courses' }, { to: '/my-courses', label: 'My Courses' }, { to: '/assignments', label: 'Assignments' }, { to: '/quizzes', label: 'Quizzes' }, { to: '/progress', label: 'Progress' }, { to: '/wallet', label: 'Wallet' }];
+};
 
 export default function Navbar() {
   const { user, logout } = useContext(AuthContext);
@@ -34,6 +35,7 @@ export default function Navbar() {
   if (!user) {
     return null;
   }
+  const navItems = navigationFor(user.role);
 
   return (
     <div className="sticky top-0 z-50 bg-slate-50/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 backdrop-blur-sm">
@@ -41,10 +43,10 @@ export default function Navbar() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 text-2xl font-bold text-slate-950 dark:text-white">
             <span className="material-symbols-outlined text-3xl text-emerald-700">eco</span>
-            AgriGrow
+            Daltex Academy
           </div>
 
-          <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600 dark:text-slate-300">
+          <nav className="hidden max-w-[58%] items-center gap-1 overflow-x-auto text-sm font-semibold text-slate-600 dark:text-slate-300 md:flex">
             {navItems.map(({ to, label }) => (
               <NavLink
                 key={label}
@@ -78,10 +80,17 @@ export default function Navbar() {
 
               {profileOpen && (
                 <div className="absolute right-0 top-full mt-3 w-44 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-950">
+                  <NavLink
+                    to="/profile"
+                    onClick={() => setProfileOpen(false)}
+                    className="block w-full px-4 py-3 text-left text-sm text-slate-900 transition hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-900"
+                  >
+                    Profile
+                  </NavLink>
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="w-full px-4 py-3 text-left text-sm text-slate-900 transition hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-900"
+                    className="w-full border-t border-slate-100 px-4 py-3 text-left text-sm text-slate-900 transition hover:bg-slate-100 dark:border-slate-800 dark:text-slate-100 dark:hover:bg-slate-900"
                   >
                     Logout
                   </button>

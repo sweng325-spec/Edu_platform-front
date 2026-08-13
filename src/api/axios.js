@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://160.60.60.32:8000/api/',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://160.60.60.32:8000/api/',
 });
 
 const getErrorMessage = (error) => {
@@ -45,6 +45,9 @@ API.interceptors.response.use(
   (response) => response,
   (error) => {
     error.userMessage = getErrorMessage(error);
+    if (error?.response?.status === 401 && localStorage.getItem('access_token')) {
+      window.dispatchEvent(new Event('auth:expired'));
+    }
     return Promise.reject(error);
   }
 );

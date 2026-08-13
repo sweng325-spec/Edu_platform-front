@@ -16,8 +16,8 @@ export default function Register() {
     e.preventDefault();
     setMessage({ type: '', text: '' });
     try {
-      await register(username, email, password, role);
-      navigate('/courses');
+      const { home } = await register(username, email, password, role);
+      navigate(home, { replace: true });
     } catch (err) {
       setMessage({ type: 'error', text: err.message || 'Registration failed.' });
     }

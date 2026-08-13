@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -11,14 +11,21 @@ import {
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
-import AdminRoute from './components/AdminRoute';
+import RoleRoute from './components/RoleRoute';
+import DashboardRedirect from './components/DashboardRedirect';
+import InstructorRoute from './components/InstructorRoute';
+import StudentRoute from './components/StudentRoute';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
 import WalletPage from './pages/WalletPage';
 import CoursesPage from './pages/CoursesPage';
 import DashboardPage from './pages/DashboardPage';
+import InstructorDashboard from './pages/InstructorDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import AccessDenied from './pages/AccessDenied';
+import RoleFeaturePage from './pages/RoleFeaturePage';
+import { ROLES } from './utils/roles';
 
 
 function Layout({ darkMode, setDarkMode }) {
@@ -48,38 +55,51 @@ function Layout({ darkMode, setDarkMode }) {
           <Route
             path="/wallet"
             element={
-              <ProtectedRoute>
+              <StudentRoute>
                 <WalletPage />
-              </ProtectedRoute>
+              </StudentRoute>
             }
           />
 
           <Route
             path="/courses"
             element={
-              <ProtectedRoute>
+              <StudentRoute>
                 <CoursesPage />
-              </ProtectedRoute>
+              </StudentRoute>
             }
           />
+
+          <Route path="/instructor" element={<InstructorRoute><InstructorDashboard /></InstructorRoute>} />
+          <Route path="/instructor/courses" element={<InstructorRoute><CoursesPage /></InstructorRoute>} />
+          <Route path="/instructor/:feature" element={<InstructorRoute><RoleFeaturePage /></InstructorRoute>} />
+
+          <Route path="/student" element={<StudentRoute><DashboardPage /></StudentRoute>} />
+          <Route path="/my-courses" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />
+          <Route path="/assignments" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />
+          <Route path="/quizzes" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />
+          <Route path="/progress" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />
+          <Route path="/notifications" element={<RoleRoute allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]}><RoleFeaturePage /></RoleRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><RoleFeaturePage /></ProtectedRoute>} />
 
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
+              <ProtectedRoute><DashboardRedirect /></ProtectedRoute>
             }
           />
 
           <Route
             path="/admin"
             element={
-              <AdminRoute>
+              <RoleRoute allowedRoles={[ROLES.ADMIN]}>
                 <AdminDashboard />
-              </AdminRoute>
+              </RoleRoute>
             }
           />
+          <Route path="/admin/:feature" element={<RoleRoute allowedRoles={[ROLES.ADMIN]}><RoleFeaturePage /></RoleRoute>} />
+          <Route path="/access-denied" element={<ProtectedRoute><AccessDenied /></ProtectedRoute>} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>
     </>

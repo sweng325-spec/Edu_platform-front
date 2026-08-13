@@ -1,5 +1,6 @@
-import React, { createContext, useState } from 'react';
-import API from '../api/axios';
+import React, { createContext, useEffect, useState } from 'react';
+import { authApi } from '../api/auth';
+import { roleHome } from '../utils/roles';
 
 export const AuthContext = createContext();
 
@@ -12,13 +13,18 @@ const getAuthErrorMessage = (error, fallback) => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user_data');
-    return savedUser ? JSON.parse(savedUser) : null;
+    try {
+      const savedUser = localStorage.getItem('user_data');
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      localStorage.removeItem('user_data');
+      return null;
+    }
   });
 
   const login = async (email, password) => {
     try {
-      const response = await API.post('users/login/', { email, password });
+      const response = await authApi.login({ email, password });
       const { access, refresh, user } = response.data;
 
       localStorage.setItem('access_token', access);
@@ -26,7 +32,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user_data', JSON.stringify(user));
 
       setUser(user);
-      return user;
+      return { user, home: roleHome(user?.role) };
     } catch (error) {
       throw new Error(getAuthErrorMessage(error, 'Invalid email or password.'));
     }
@@ -34,7 +40,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (username, email, password, role) => {
     try {
-      const response = await API.post('users/register/', { username, email, password, role });
+      const response = await authApi.register({ username, email, password, role });
       const { access, refresh, user } = response.data;
 
       localStorage.setItem('access_token', access);
@@ -42,19 +48,27 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user_data', JSON.stringify(user));
 
       setUser(user);
-      return user;
+      return { user, home: roleHome(user?.role) };
     } catch (error) {
       throw new Error(getAuthErrorMessage(error, 'Registration failed. Please try again.'));
     }
   };
 
   const logout = () => {
-    localStorage.clear();
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user_data');
     setUser(null);
   };
 
+  useEffect(() => {
+    const handleExpiredSession = () => logout();
+    window.addEventListener('auth:expired', handleExpiredSession);
+    return () => window.removeEventListener('auth:expired', handleExpiredSession);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: Boolean(user), role: user?.role, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
