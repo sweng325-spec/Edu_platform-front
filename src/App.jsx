@@ -18,13 +18,14 @@ import StudentRoute from './components/StudentRoute';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
-import WalletPage from './pages/WalletPage';
 import CoursesPage from './pages/CoursesPage';
 import DashboardPage from './pages/DashboardPage';
+import LearningPlanPage from './pages/LearningPlanPage';
 import InstructorDashboard from './pages/InstructorDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import AccessDenied from './pages/AccessDenied';
 import RoleFeaturePage from './pages/RoleFeaturePage';
+import MyCoursesPage from './pages/MyCoursesPage';
 import { ROLES } from './utils/roles';
 
 
@@ -53,15 +54,6 @@ function Layout({ darkMode, setDarkMode }) {
           <Route path="/register" element={<Register />} />
 
           <Route
-            path="/wallet"
-            element={
-              <StudentRoute>
-                <WalletPage />
-              </StudentRoute>
-            }
-          />
-
-          <Route
             path="/courses"
             element={
               <StudentRoute>
@@ -75,7 +67,8 @@ function Layout({ darkMode, setDarkMode }) {
           <Route path="/instructor/:feature" element={<InstructorRoute><RoleFeaturePage /></InstructorRoute>} />
 
           <Route path="/student" element={<StudentRoute><DashboardPage /></StudentRoute>} />
-          <Route path="/my-courses" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />
+          <Route path="/learning-plan" element={<StudentRoute><LearningPlanPage /></StudentRoute>} />
+          <Route path="/my-courses" element={<StudentRoute><MyCoursesPage /></StudentRoute>} />
           <Route path="/assignments" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />
           <Route path="/quizzes" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />
           <Route path="/progress" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />
@@ -115,9 +108,11 @@ export default function App() {
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
+      document.documentElement.style.colorScheme = 'dark';
       localStorage.setItem('theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
       localStorage.setItem('theme', 'light');
     }
   }, [darkMode]);

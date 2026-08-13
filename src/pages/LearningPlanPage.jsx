@@ -1,0 +1,516 @@
+import { useContext, useEffect, useMemo, useState } from 'react';
+import { CalendarDays, Clock3, ArrowLeft, Plus, PencilLine, Trash2, CheckCircle2, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
+
+const defaultTasks = [
+  {
+    id: 'default-soil-quiz',
+    title: 'Complete the soil sample quiz',
+    day: 'Monday',
+    hours: '15 min',
+    completed: false,
+    subtasks: [
+      { id: 'default-soil-quiz-sub1', text: 'Read the intro lesson', completed: false },
+      { id: 'default-soil-quiz-sub2', text: 'Finish the quiz', completed: false },
+    ],
+  },
+  {
+    id: 'default-irrigation-notes',
+    title: 'Review irrigation field notes',
+    day: 'Tuesday',
+    hours: '20 min',
+    completed: false,
+    subtasks: [
+      { id: 'default-irrigation-sub1', text: 'Highlight key methods', completed: true },
+      { id: 'default-irrigation-sub2', text: 'Summarize water-saving tips', completed: false },
+    ],
+  },
+  {
+    id: 'default-crop-rotation',
+    title: 'Submit the crop rotation reflection',
+    day: 'Wednesday',
+    hours: '30 min',
+    completed: false,
+    subtasks: [
+      { id: 'default-crop-sub1', text: 'List 3 benefits', completed: false },
+    ],
+  },
+  {
+    id: 'default-greenhouse-plan',
+    title: 'Finish the greenhouse planning task',
+    day: 'Thursday',
+    hours: '45 min',
+    completed: false,
+    subtasks: [
+      { id: 'default-greenhouse-sub1', text: 'Draw the layout', completed: false },
+    ],
+  },
+  {
+    id: 'default-composting',
+    title: 'Practice the composting checklist',
+    day: 'Friday',
+    hours: '25 min',
+    completed: false,
+    subtasks: [
+      { id: 'default-composting-sub1', text: 'Review decomposition stages', completed: false },
+    ],
+  },
+];
+
+const emptyForm = {
+  title: '',
+  day: 'Monday',
+  hours: '15 min',
+  subtasks: [],
+};
+
+const makeId = () => `task-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+
+export default function LearningPlanPage() {
+  const { user } = useContext(AuthContext);
+  const [tasks, setTasks] = useState(defaultTasks);
+  const [form, setForm] = useState(emptyForm);
+  const [editingId, setEditingId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [subtaskInput, setSubtaskInput] = useState('');
+
+  const storageKey = useMemo(() => {
+    const userKey = user?.id || user?.email || 'guest-user';
+    return `learning_plan_${String(userKey).replace(/[^a-zA-Z0-9]/g, '_')}`;
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    try {
+      const savedTasks = JSON.parse(localStorage.getItem(storageKey) || 'null');
+      if (Array.isArray(savedTasks) && savedTasks.length > 0) {
+        setTasks(savedTasks);
+        return;
+      }
+    } catch {
+      localStorage.removeItem(storageKey);
+    }
+
+    setTasks(defaultTasks);
+    localStorage.setItem(storageKey, JSON.stringify(defaultTasks));
+  }, [storageKey, user]);
+
+  useEffect(() => {
+    if (!user) return;
+    localStorage.setItem(storageKey, JSON.stringify(tasks));
+  }, [tasks, storageKey, user]);
+
+  const completedCount = tasks.filter((task) => task.completed).length;
+
+  const openAddTaskModal = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setSubtaskInput('');
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingId(null);
+    setForm(emptyForm);
+    setSubtaskInput('');
+  };
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
+  };
+
+  const addSubtaskToForm = () => {
+    const trimmed = subtaskInput.trim();
+    if (!trimmed) return;
+
+    setForm((current) => ({
+      ...current,
+      subtasks: [...current.subtasks, { id: makeId(), text: trimmed, completed: false }],
+    }));
+    setSubtaskInput('');
+  };
+
+  const toggleFormSubtask = (subtaskId) => {
+    setForm((current) => ({
+      ...current,
+      subtasks: current.subtasks.map((subtask) =>
+        subtask.id === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
+      ),
+    }));
+  };
+
+  const removeFormSubtask = (subtaskId) => {
+    setForm((current) => ({
+      ...current,
+      subtasks: current.subtasks.filter((subtask) => subtask.id !== subtaskId),
+    }));
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    const trimmedTitle = form.title.trim();
+    if (!trimmedTitle) return;
+
+    const normalizedSubtasks = form.subtasks
+      .filter((subtask) => subtask.text.trim())
+      .map((subtask) => ({
+        id: subtask.id || makeId(),
+        text: subtask.text.trim(),
+        completed: Boolean(subtask.completed),
+      }));
+
+    const taskData = {
+      id: editingId || makeId(),
+      title: trimmedTitle,
+      day: form.day,
+      hours: form.hours,
+      completed: false,
+      subtasks: normalizedSubtasks,
+    };
+
+    setTasks((current) => {
+      if (editingId) {
+        return current.map((task) => (task.id === editingId ? { ...task, ...taskData } : task));
+      }
+      return [taskData, ...current];
+    });
+
+    closeModal();
+  };
+
+  const toggleTask = (taskId) => {
+    setTasks((current) =>
+      current.map((task) =>
+        task.id === taskId ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
+
+  const toggleSubtask = (taskId, subtaskId) => {
+    setTasks((current) =>
+      current.map((task) => {
+        if (task.id !== taskId) return task;
+
+        const updatedSubtasks = task.subtasks.map((subtask) =>
+          subtask.id === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
+        );
+
+        const allSubtasksComplete = updatedSubtasks.length > 0 && updatedSubtasks.every((subtask) => subtask.completed);
+
+        return {
+          ...task,
+          subtasks: updatedSubtasks,
+          completed: allSubtasksComplete,
+        };
+      })
+    );
+  };
+
+  const editTask = (task) => {
+    setEditingId(task.id);
+    setForm({
+      title: task.title,
+      day: task.day,
+      hours: task.hours,
+      subtasks: task.subtasks.map((subtask) => ({ ...subtask })),
+    });
+    setSubtaskInput('');
+    setIsModalOpen(true);
+  };
+
+  const deleteTask = (taskId) => {
+    setTasks((current) => current.filter((task) => task.id !== taskId));
+    if (editingId === taskId) {
+      closeModal();
+    }
+  };
+
+  const removeSubtaskFromTask = (taskId, subtaskId) => {
+    setTasks((current) =>
+      current.map((task) =>
+        task.id === taskId
+          ? { ...task, subtasks: task.subtasks.filter((subtask) => subtask.id !== subtaskId) }
+          : task
+      )
+    );
+  };
+
+  if (!user) {
+    return null;
+  }
+
+  return (
+    <div className="mx-auto max-w-5xl space-y-6 pb-10">
+      <section className="rounded-[30px] bg-[#123f30] px-6 py-8 text-white shadow-[0_18px_45px_-24px_rgba(17,74,54,0.8)] sm:px-8">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#d9edc7]">Weekly plan</p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">My To-Do List</h1>
+          </div>
+          <Link
+            to="/student"
+            className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/15"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Dashboard
+          </Link>
+        </div>
+      </section>
+
+      <section className="rounded-[28px] border border-[#dbe7dc] bg-white p-6 shadow-[0_10px_30px_rgba(27,67,50,0.05)] dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.12em] text-emerald-700">Tasks</p>
+            <h2 className="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">This week’s schedule</h2>
+          </div>
+          <div className="flex flex-col items-end gap-3">
+            <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+              {completedCount}/{tasks.length} complete
+            </span>
+            <button
+              type="button"
+              onClick={openAddTaskModal}
+              className="inline-flex items-center justify-center rounded-xl bg-[#16623f] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_24px_-16px_rgba(17,74,54,0.9)] transition hover:bg-[#104d32]"
+            >
+              Add a task
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {tasks.map((item) => (
+            <article
+              key={item.id}
+              className={`rounded-[24px] border p-5 transition ${
+                item.completed
+                  ? 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-800 dark:bg-emerald-950/20'
+                  : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/60'
+              }`}
+            >
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="flex items-start gap-4">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(item.completed)}
+                    onChange={() => toggleTask(item.id)}
+                    className="mt-1 h-5 w-5 cursor-pointer accent-emerald-600"
+                  />
+
+                  <div className="max-w-2xl">
+                    <h3 className={`text-lg font-semibold ${item.completed ? 'line-through text-slate-500 dark:text-slate-400' : 'text-slate-900 dark:text-white'}`}>
+                      {item.title}
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm dark:bg-slate-900 dark:text-slate-200">
+                    <CalendarDays className="h-4 w-4 text-emerald-700" />
+                    {item.day}
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm dark:bg-slate-900 dark:text-slate-200">
+                    <Clock3 className="h-4 w-4 text-amber-600" />
+                    {item.hours}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => editTask(item)}
+                      className="inline-flex items-center justify-center rounded-full bg-slate-200 p-2 text-slate-700 transition hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600"
+                      aria-label={`Edit ${item.title}`}
+                    >
+                      <PencilLine className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteTask(item.id)}
+                      className="inline-flex items-center justify-center rounded-full bg-red-100 p-2 text-red-600 transition hover:bg-red-200 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/60"
+                      aria-label={`Delete ${item.title}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900/60">
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Subtasks</p>
+                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                    {item.subtasks.filter((subtask) => subtask.completed).length}/{item.subtasks.length}
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {item.subtasks.length === 0 ? (
+                    <p className="text-sm text-slate-500 dark:text-slate-400">No subtasks yet.</p>
+                  ) : (
+                    item.subtasks.map((subtask) => (
+                      <div key={subtask.id} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/80">
+                        <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(subtask.completed)}
+                            onChange={() => toggleSubtask(item.id, subtask.id)}
+                            className="h-4 w-4 accent-emerald-600"
+                          />
+                          <span className={subtask.completed ? 'line-through text-slate-400' : ''}>{subtask.text}</span>
+                        </label>
+
+                        <button
+                          type="button"
+                          onClick={() => removeSubtaskFromTask(item.id, subtask.id)}
+                          className="text-slate-400 transition hover:text-red-500"
+                          aria-label={`Remove ${subtask.text}`}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="w-full max-w-xl rounded-[28px] bg-white p-6 shadow-2xl dark:bg-slate-900">
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
+                {editingId ? 'Edit task' : 'Add a task'}
+              </h3>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="rounded-full bg-slate-100 p-2 text-slate-600 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                Task title
+                <input
+                  type="text"
+                  name="title"
+                  value={form.title}
+                  onChange={handleChange}
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  placeholder="e.g. Finish the assignment review"
+                />
+              </label>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                  Day
+                  <select
+                    name="day"
+                    value={form.day}
+                    onChange={handleChange}
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  >
+                    <option>Monday</option>
+                    <option>Tuesday</option>
+                    <option>Wednesday</option>
+                    <option>Thursday</option>
+                    <option>Friday</option>
+                    <option>Saturday</option>
+                    <option>Sunday</option>
+                  </select>
+                </label>
+
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                  Time needed
+                  <input
+                    type="text"
+                    name="hours"
+                    value={form.hours}
+                    onChange={handleChange}
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    placeholder="30 min"
+                  />
+                </label>
+              </div>
+
+              <div className="rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/60 p-4 dark:border-emerald-800 dark:bg-emerald-950/20">
+                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Subtasks</p>
+
+                <div className="mt-3 flex gap-2">
+                  <input
+                    type="text"
+                    value={subtaskInput}
+                    onChange={(event) => setSubtaskInput(event.target.value)}
+                    placeholder="Add a subtask"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={addSubtaskToForm}
+                    className="rounded-xl bg-[#16623f] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#104d32]"
+                  >
+                    Add
+                  </button>
+                </div>
+
+                <div className="mt-3 space-y-2">
+                  {form.subtasks.length === 0 ? (
+                    <p className="text-sm text-slate-500 dark:text-slate-400">No subtasks added yet.</p>
+                  ) : (
+                    form.subtasks.map((subtask) => (
+                      <div key={subtask.id} className="flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2 dark:bg-slate-800">
+                        <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(subtask.completed)}
+                            onChange={() => toggleFormSubtask(subtask.id)}
+                            className="h-4 w-4 accent-emerald-600"
+                          />
+                          <span className={subtask.completed ? 'line-through text-slate-400' : ''}>{subtask.text}</span>
+                        </label>
+
+                        <button
+                          type="button"
+                          onClick={() => removeFormSubtask(subtask.id)}
+                          className="text-slate-400 transition hover:text-red-500"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#16623f] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#104d32]"
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  {editingId ? 'Save changes' : 'Save task'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
