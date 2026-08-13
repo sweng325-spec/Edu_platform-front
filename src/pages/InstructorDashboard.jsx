@@ -9,8 +9,27 @@ const actions = [
 
 export default function InstructorDashboard() {
   return (
-    <div className="mx-auto max-w-[1100px] space-y-7 pb-10">
-      <section className="relative overflow-hidden rounded-[30px] bg-[#123f30] px-6 py-9 text-white shadow-[0_18px_45px_-24px_rgba(17,74,54,0.8)] sm:px-10"><div className="absolute -right-12 -top-16 h-64 w-64 rounded-full border-[30px] border-[#b8dc8d]/20" /><div className="relative"><span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#d9edc7]"><GraduationCap className="h-3.5 w-3.5" /> Instructor workspace</span><h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">Lead learning with confidence.</h1><p className="mt-3 max-w-xl leading-7 text-white/75">Manage the courses you own, support your students, and keep your teaching momentum strong.</p><Link to="/instructor/courses" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#b8dc8d] px-5 py-3 text-sm font-semibold text-[#123f30] transition hover:bg-[#d9edc7]"><Plus className="h-4 w-4" /> Manage my courses</Link></div></section>
+    <div className="mx-auto max-w-[1200px] space-y-7 pb-10">
+      <section className="relative overflow-hidden px-6 py-9 text-[#123f30] sm:px-10">
+        <div className="mx-auto max-w-[1200px]">
+          <div className="relative flex flex-col gap-7 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex-1">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#123f30]/15 bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#123f30]"><GraduationCap className="h-3.5 w-3.5" /> Instructor workspace</span>
+              <h1 className="mt-5 text-3xl font-semibold tracking-tight text-[#123f30] sm:text-4xl">Lead learning with confidence.</h1>
+              <p className="mt-3 max-w-xl text-base leading-7 text-[#123f30]/80">Manage the courses you own, support your students, and keep your teaching momentum strong.</p>
+            </div>
+
+            <div className="mt-[-6px] flex items-center gap-3 rounded-[22px] border border-[#123f30]/10 bg-[#edf5ef]/90 px-4 py-3 shadow-sm backdrop-blur-sm dark:border-[#dfeee3]/10 dark:bg-[#dfeee3]/10">
+              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#dfeee3] text-[#123f30] dark:bg-[#123f30] dark:text-[#dfeee3]"><BarChart3 className="h-5 w-5" /></span>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#123f30]/75 dark:text-[#e8f7ef]">Performance</p>
+                <p className="mt-1 text-2xl font-semibold text-[#123f30] dark:text-[#e8f7ef]">92%</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="grid grid-cols-1 gap-5 md:grid-cols-3">{actions.map(({ to, label, detail, icon: Icon }) => <Link key={to} to={to} className="group rounded-[25px] border border-[#dbe7dc] bg-white p-5 shadow-[0_10px_30px_rgba(27,67,50,0.05)] transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"><span className="inline-flex rounded-2xl bg-[#e6f2e8] p-3 text-[#16623f] dark:bg-emerald-950 dark:text-emerald-300"><Icon className="h-5 w-5" /></span><h2 className="mt-5 font-semibold text-slate-900 dark:text-white">{label}</h2><p className="mt-1 text-sm leading-6 text-slate-500">{detail}</p></Link>)}</section>
       <section className="rounded-[28px] border border-[#dbe7dc] bg-white p-6 shadow-[0_10px_30px_rgba(27,67,50,0.05)] dark:border-slate-800 dark:bg-slate-900"><div className="flex items-center gap-3"><span className="rounded-2xl bg-[#e6f2e8] p-3 text-[#16623f] dark:bg-emerald-950 dark:text-emerald-300"><BarChart3 className="h-5 w-5" /></span><div><h2 className="text-xl font-semibold text-slate-900 dark:text-white">Course performance</h2><p className="mt-1 text-sm text-slate-500">Use your performance workspace to review progress for students enrolled in your courses.</p></div></div><Link to="/instructor/performance" className="mt-5 inline-flex rounded-xl bg-[#16623f] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#104d32]">Open performance</Link></section>
     </div>

@@ -43,7 +43,7 @@ export default function Register() {
           <div className="relative z-10 flex h-full flex-col justify-between p-10 text-white">
             <div className="flex items-center gap-2">
               <GraduationCap className="h-8 w-8" />
-              <span className="text-[24px] font-semibold tracking-tight">Terraform Edu</span>
+              <span className="text-[24px] font-semibold tracking-tight">Daltex Academy</span>
             </div>
             <div className="max-w-md">
               <h1 className="mb-4 text-[48px] font-semibold leading-tight tracking-[-0.02em]">Grow your career with Daltex</h1>
@@ -59,7 +59,7 @@ export default function Register() {
             <div className="mb-8 text-center lg:text-left">
               <div className="mb-3 flex items-center justify-center gap-2 text-[#012d1d] lg:justify-start">
                 <GraduationCap className="h-6 w-6" />
-                <span className="text-[20px] font-semibold">Terraform Edu</span>
+                <span className="text-[20px] font-semibold">Daltex Academy</span>
               </div>
               <h2 className="mb-2 text-[32px] font-semibold text-[#012d1d]">Create your account</h2>
               <p className="text-[16px] text-[#414844]">Start learning the skills that move Daltex forward.</p>

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://160.60.60.32:8000/api/',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://160.60.60.19:8000/api/',
 });
 
 const getErrorMessage = (error) => {

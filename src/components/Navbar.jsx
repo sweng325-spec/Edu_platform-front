@@ -6,10 +6,10 @@ import { isInstructor } from '../utils/roles';
 const navigationFor = (role) => {
   if (role === 'ADMIN') return [{ to: '/admin', label: 'Dashboard' }, { to: '/admin/users', label: 'Users' }, { to: '/admin/students', label: 'Students' }, { to: '/admin/instructors', label: 'Instructors' }, { to: '/admin/courses', label: 'Courses' }, { to: '/admin/enrollments', label: 'Enrollments' }, { to: '/admin/statistics', label: 'Statistics' }, { to: '/admin/settings', label: 'Settings' }];
   if (isInstructor(role)) return [{ to: '/instructor', label: 'Dashboard' }, { to: '/instructor/courses', label: 'My Courses' }, { to: '/instructor/lessons', label: 'Lessons' }, { to: '/instructor/assignments', label: 'Assignments' }, { to: '/instructor/quizzes', label: 'Quizzes' }, { to: '/instructor/students', label: 'Students' }, { to: '/instructor/performance', label: 'Performance' }];
-  return [{ to: '/student', label: 'Dashboard' }, { to: '/courses', label: 'Browse Courses' }, { to: '/my-courses', label: 'My Courses' }, { to: '/assignments', label: 'Assignments' }, { to: '/quizzes', label: 'Quizzes' }, { to: '/progress', label: 'Progress' }, { to: '/wallet', label: 'Wallet' }];
+  return [{ to: '/student', label: 'Dashboard' }, { to: '/courses', label: 'Browse Courses' }, { to: '/my-courses', label: 'My Courses' }, { to: '/assignments', label: 'Assignments' }, { to: '/quizzes', label: 'Quizzes' }];
 };
 
-export default function Navbar() {
+export default function Navbar({ darkMode, setDarkMode }) {
   const { user, logout } = useContext(AuthContext);
   const [profileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
@@ -51,6 +51,7 @@ export default function Navbar() {
               <NavLink
                 key={label}
                 to={to}
+                end
                 className={({ isActive }) =>
                   `px-3 py-2 rounded-md transition-all ${isActive ? 'text-emerald-700 dark:text-emerald-300 border-b-2 border-emerald-700' : 'hover:text-emerald-700 hover:bg-slate-100 dark:hover:bg-slate-800'}`
                 }
@@ -61,10 +62,19 @@ export default function Navbar() {
           </nav>
 
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-              <span className="material-symbols-outlined text-xl">account_balance_wallet</span>
-              <span className="text-sm font-semibold">1,250</span>
-            </div>
+            <button
+              type="button"
+              onClick={() => setDarkMode((prev) => !prev)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              aria-label="Toggle light and dark mode"
+              title="Toggle theme"
+              aria-pressed={darkMode}
+            >
+              <span className="material-symbols-outlined text-xl">
+                {darkMode ? 'light_mode' : 'dark_mode'}
+              </span>
+            </button>
+
             <button className="hidden md:inline-flex p-2 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
               <span className="material-symbols-outlined">notifications</span>
             </button>
