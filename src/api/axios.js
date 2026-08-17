@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../utils/media';
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://160.60.60.19:8000/api/',
+  baseURL: API_BASE_URL,
 });
 
 const getErrorMessage = (error) => {

@@ -114,7 +114,7 @@ export default function RoleFeaturePage() {
 
                   <div className="mt-5 flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-700">
                     <span className="text-sm text-slate-500 dark:text-slate-400">{course.teacher_name || 'Daltex instructor'}</span>
-                    <Link to={`/my-courses?course=${course.slug || course.id}`} className="inline-flex rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-800">Open</Link>
+                    <Link to={`/my-courses/${course.id}`} className="inline-flex rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-800">Open</Link>
                   </div>
                 </div>
               ))}
