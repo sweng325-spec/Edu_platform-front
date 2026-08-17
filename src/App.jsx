@@ -19,9 +19,11 @@ import StudentRoute from './components/StudentRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import CoursesPage from './pages/CoursesPage';
+import CourseDetailsPage from './pages/CourseDetailsPage';
 import DashboardPage from './pages/DashboardPage';
 import LearningPlanPage from './pages/LearningPlanPage';
 import InstructorDashboard from './pages/InstructorDashboard';
+import InstructorTodosPage from './pages/InstructorTodosPage';
 import AdminDashboard from './pages/AdminDashboard';
 import AccessDenied from './pages/AccessDenied';
 import RoleFeaturePage from './pages/RoleFeaturePage';
@@ -64,11 +66,14 @@ function Layout({ darkMode, setDarkMode }) {
 
           <Route path="/instructor" element={<InstructorRoute><InstructorDashboard /></InstructorRoute>} />
           <Route path="/instructor/courses" element={<InstructorRoute><CoursesPage /></InstructorRoute>} />
+          <Route path="/instructor/courses/:courseId" element={<InstructorRoute><CourseDetailsPage /></InstructorRoute>} />
+          <Route path="/instructor/todos" element={<InstructorRoute><InstructorTodosPage /></InstructorRoute>} />
           <Route path="/instructor/:feature" element={<InstructorRoute><RoleFeaturePage /></InstructorRoute>} />
 
           <Route path="/student" element={<StudentRoute><DashboardPage /></StudentRoute>} />
           <Route path="/learning-plan" element={<StudentRoute><LearningPlanPage /></StudentRoute>} />
           <Route path="/my-courses" element={<StudentRoute><MyCoursesPage /></StudentRoute>} />
+          <Route path="/my-courses/:courseId" element={<StudentRoute><CourseDetailsPage /></StudentRoute>} />
           <Route path="/assignments" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />
           <Route path="/quizzes" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />
           <Route path="/progress" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />

@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { CalendarDays, Clock3, ArrowLeft, PencilLine, Trash2, CheckCircle2, X } from 'lucide-react';
+import { CalendarDays, Clock3, ArrowLeft, PencilLine, Trash2, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { todosApi } from '../api/todos';
@@ -14,7 +14,7 @@ import {
 
 const makeId = () => `subtask-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 
-export default function LearningPlanPage() {
+export default function InstructorTodosPage() {
   const { user } = useContext(AuthContext);
   const [tasks, setTasks] = useState([]);
   const [form, setForm] = useState(emptyTodoForm);
@@ -239,7 +239,7 @@ export default function LearningPlanPage() {
             <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">My To-Do List</h1>
           </div>
           <Link
-            to="/student"
+            to="/instructor"
             className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/15"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -252,7 +252,7 @@ export default function LearningPlanPage() {
         <div className="mb-6 flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.12em] text-emerald-700">Tasks</p>
-            <h2 className="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">This week’s schedule</h2>
+            <h2 className="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">This week's schedule</h2>
           </div>
           <div className="flex flex-col items-end gap-3">
             <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
@@ -501,10 +501,9 @@ export default function LearningPlanPage() {
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#16623f] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#104d32]"
+                  className="rounded-xl bg-[#16623f] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#104d32]"
                 >
-                  <CheckCircle2 className="h-4 w-4" />
-                  {editingId ? 'Save changes' : 'Save task'}
+                  {editingId ? 'Update task' : 'Create task'}
                 </button>
               </div>
             </form>
