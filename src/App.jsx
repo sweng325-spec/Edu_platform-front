@@ -20,6 +20,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import CoursesPage from './pages/CoursesPage';
 import CourseDetailsPage from './pages/CourseDetailsPage';
+import CourseMaterialsFolderPage from './pages/CourseMaterialsFolderPage';
+import CourseAnnouncementsPage from './pages/CourseAnnouncementsPage';
 import DashboardPage from './pages/DashboardPage';
 import LearningPlanPage from './pages/LearningPlanPage';
 import InstructorDashboard from './pages/InstructorDashboard';
@@ -67,6 +69,8 @@ function Layout({ darkMode, setDarkMode }) {
           <Route path="/instructor" element={<InstructorRoute><InstructorDashboard /></InstructorRoute>} />
           <Route path="/instructor/courses" element={<InstructorRoute><CoursesPage /></InstructorRoute>} />
           <Route path="/instructor/courses/:courseId" element={<InstructorRoute><CourseDetailsPage /></InstructorRoute>} />
+          <Route path="/instructor/courses/:courseId/materials/:folderType" element={<InstructorRoute><CourseMaterialsFolderPage /></InstructorRoute>} />
+          <Route path="/instructor/courses/:courseId/announcements" element={<InstructorRoute><CourseAnnouncementsPage /></InstructorRoute>} />
           <Route path="/instructor/todos" element={<InstructorRoute><InstructorTodosPage /></InstructorRoute>} />
           <Route path="/instructor/:feature" element={<InstructorRoute><RoleFeaturePage /></InstructorRoute>} />
 
@@ -74,6 +78,8 @@ function Layout({ darkMode, setDarkMode }) {
           <Route path="/learning-plan" element={<StudentRoute><LearningPlanPage /></StudentRoute>} />
           <Route path="/my-courses" element={<StudentRoute><MyCoursesPage /></StudentRoute>} />
           <Route path="/my-courses/:courseId" element={<StudentRoute><CourseDetailsPage /></StudentRoute>} />
+          <Route path="/my-courses/:courseId/materials/:folderType" element={<StudentRoute><CourseMaterialsFolderPage /></StudentRoute>} />
+          <Route path="/my-courses/:courseId/announcements" element={<StudentRoute><CourseAnnouncementsPage /></StudentRoute>} />
           <Route path="/assignments" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />
           <Route path="/quizzes" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />
           <Route path="/progress" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />

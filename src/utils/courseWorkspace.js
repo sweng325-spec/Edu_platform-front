@@ -3,6 +3,7 @@ const STORAGE_KEY = 'daltex.courseWorkspace.v1';
 const emptyWorkspace = () => ({
   announcements: [],
   materials: [],
+  folders: [],
   students: [],
 });
 
@@ -56,17 +57,37 @@ export const courseWorkspace = {
     return announcement;
   },
 
+  getFolders(courseId) {
+    const bucket = getCourseBucket(courseId).bucket;
+    return bucket.folders || [];
+  },
+
+  addFolder(courseId, { title }) {
+    const { bucket } = getCourseBucket(courseId);
+    const folder = {
+      id: makeId('folder'),
+      title: title.trim(),
+      created_at: new Date().toISOString(),
+    };
+    bucket.folders = [folder, ...(bucket.folders || [])];
+    saveCourseBucket(courseId, bucket);
+    return folder;
+  },
+
   getMaterials(courseId) {
     return getCourseBucket(courseId).bucket.materials;
   },
 
-  addMaterial(courseId, { title, description, link }) {
+  addMaterial(courseId, { folder_id, title, description, link, material_type, file_name }) {
     const { bucket } = getCourseBucket(courseId);
     const material = {
       id: makeId('material'),
+      folder_id: folder_id || 'general',
       title: title.trim(),
       description: (description || '').trim(),
       link: (link || '').trim(),
+      material_type: material_type || 'PDF',
+      file_name: file_name || '',
       created_at: new Date().toISOString(),
     };
     bucket.materials = [material, ...bucket.materials];

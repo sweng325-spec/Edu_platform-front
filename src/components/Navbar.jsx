@@ -1,6 +1,10 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { coursesApi } from '../api/courses';
+import { getLatestUnseenAnnouncement } from '../utils/announcementNotifications';
+import { fetchAnnouncementsForCourses } from '../utils/fetchCourseAnnouncements';
+import { extractCoursesList } from '../utils/media';
 import { isInstructor } from '../utils/roles';
 
 const navigationFor = (role) => {
@@ -12,19 +16,66 @@ const navigationFor = (role) => {
 export default function Navbar({ darkMode, setDarkMode }) {
   const { user, logout } = useContext(AuthContext);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [courseNotifications, setCourseNotifications] = useState([]);
   const navigate = useNavigate();
   const menuRef = useRef(null);
+  const notificationsRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setProfileOpen(false);
       }
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setNotificationsOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!user?.id || isInstructor(user.role)) {
+      setCourseNotifications([]);
+      return undefined;
+    }
+
+    let mounted = true;
+
+    const loadNotifications = async () => {
+      try {
+        const response = await coursesApi.getmyCourses(user.id);
+        const courses = extractCoursesList(response?.data);
+        const announcementsMap = await fetchAnnouncementsForCourses(courses);
+
+        if (!mounted) return;
+
+        const notifications = courses
+          .map((course) => {
+            const announcements = announcementsMap[String(course.id)] || [];
+            const unseen = getLatestUnseenAnnouncement(user.id, course.id, announcements);
+            if (!unseen) return null;
+            return {
+              courseId: course.id,
+              courseTitle: course.title,
+              announcement: unseen,
+            };
+          })
+          .filter(Boolean);
+
+        setCourseNotifications(notifications);
+      } catch {
+        if (mounted) setCourseNotifications([]);
+      }
+    };
+
+    loadNotifications();
+    return () => {
+      mounted = false;
+    };
+  }, [user?.id, user?.role]);
 
   const handleLogout = () => {
     logout();
@@ -75,9 +126,52 @@ export default function Navbar({ darkMode, setDarkMode }) {
               </span>
             </button>
 
-            <button className="hidden md:inline-flex p-2 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
-              <span className="material-symbols-outlined">notifications</span>
-            </button>
+            <div className="relative" ref={notificationsRef}>
+              <button
+                type="button"
+                onClick={() => setNotificationsOpen((open) => !open)}
+                className="relative hidden md:inline-flex p-2 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                aria-label="Course announcements"
+              >
+                <span className="material-symbols-outlined">notifications</span>
+                {courseNotifications.length > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white">
+                    {courseNotifications.length}
+                  </span>
+                )}
+              </button>
+
+              {notificationsOpen && (
+                <div className="absolute right-0 top-full mt-3 w-80 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-950">
+                  <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">Announcements</p>
+                  </div>
+                  {courseNotifications.length === 0 ? (
+                    <p className="px-4 py-5 text-sm text-slate-500 dark:text-slate-400">
+                      No new announcements.
+                    </p>
+                  ) : (
+                    <div className="max-h-80 overflow-y-auto">
+                      {courseNotifications.map(({ courseId, courseTitle, announcement }) => (
+                        <Link
+                          key={`${courseId}-${announcement.id}`}
+                          to={`/my-courses/${courseId}`}
+                          onClick={() => setNotificationsOpen(false)}
+                          className="block border-b border-slate-100 px-4 py-3 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900"
+                        >
+                          <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">
+                            {courseTitle}
+                          </p>
+                          <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
+                            {announcement.title}
+                          </p>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             <div className="relative" ref={menuRef}>
               <button

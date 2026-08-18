@@ -30,4 +30,10 @@ export const coursesApi = {
       },
     }),
   getCourseAnnouncements: (courseId) => API.get(`courses/${courseId}/announcements/`),
+  // Add this inside your coursesApi object
+  deleteCourseMaterial: (courseId, materialId) => 
+    API.delete(`courses/materials/${materialId}/`),
+
+  getFolders: (courseId) => 
+    API.get(`courses/${courseId}/folders/`),
 };

@@ -2,34 +2,25 @@ import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
+  ArrowRight,
   Bell,
-  BookOpen,
-  FileText,
-  Link2,
+  ChevronRight,
+  Folder,
   Megaphone,
   Plus,
-  Upload,
   UserRound,
   UsersRound,
-  Video,
 } from 'lucide-react';
 import { coursesApi } from '../api/courses';
 import { AuthContext } from '../context/AuthContext';
+import {
+  markAnnouncementsSeen,
+  sortAnnouncementsByDate,
+} from '../utils/announcementNotifications';
 import { courseWorkspace } from '../utils/courseWorkspace';
-import { extractCoursesList, getCourseImageUrl, resolveMediaUrl } from '../utils/media';
+import { formatDate } from '../utils/format';
+import { extractCoursesList, getCourseImageUrl } from '../utils/media';
 import { isInstructor } from '../utils/roles';
-
-function formatDate(value) {
-  if (!value) return '';
-  try {
-    return new Date(value).toLocaleString(undefined, {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
-  } catch {
-    return value;
-  }
-}
 
 export default function CourseDetailsPage() {
   const { courseId } = useParams();
@@ -42,6 +33,7 @@ export default function CourseDetailsPage() {
   const [error, setError] = useState('');
   const [announcements, setAnnouncements] = useState([]);
   const [materials, setMaterials] = useState([]);
+  const [folders, setFolders] = useState([]);
   const [students, setStudents] = useState([]);
 
   // Announcement Form State
@@ -49,22 +41,28 @@ export default function CourseDetailsPage() {
   const [savingAnnouncement, setSavingAnnouncement] = useState(false);
   const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(false);
 
-  // Material Form State (With Multipart/FormData Support)
-  const [materialForm, setMaterialForm] = useState({
-    title: '',
-    description: '',
-    link: '',
-    material_type: 'PDF',
-  });
-  const [file, setFile] = useState(null);
-  const [savingMaterial, setSavingMaterial] = useState(false);
-  const [isMaterialOpen, setIsMaterialOpen] = useState(false);
+  // Folder Form State
+  const [isFolderOpen, setIsFolderOpen] = useState(false);
+  const [folderFormTitle, setFolderFormTitle] = useState('');
 
   const backTo = instructorView ? '/instructor/courses' : '/my-courses';
+  const materialsBase = instructorView
+    ? `/instructor/courses/${courseId}/materials`
+    : `/my-courses/${courseId}/materials`;
+  const announcementsPath = instructorView
+    ? `/instructor/courses/${courseId}/announcements`
+    : `/my-courses/${courseId}/announcements`;
+
+  const sortedAnnouncements = useMemo(
+    () => sortAnnouncementsByDate(announcements),
+    [announcements],
+  );
+  const latestAnnouncement = sortedAnnouncements[0] || null;
 
   const loadWorkspace = () => {
     setAnnouncements(courseWorkspace.getAnnouncements(courseId));
     setMaterials(courseWorkspace.getMaterials(courseId));
+    setFolders(courseWorkspace.getFolders(courseId));
     setStudents(courseWorkspace.getStudents(courseId));
   };
 
@@ -80,6 +78,7 @@ export default function CourseDetailsPage() {
     } catch {
       setMaterials(courseWorkspace.getMaterials(courseId));
     }
+    setFolders(courseWorkspace.getFolders(courseId));
   };
 
   useEffect(() => {
@@ -134,6 +133,11 @@ export default function CourseDetailsPage() {
     };
   }, [courseId]);
 
+  useEffect(() => {
+    if (instructorView || !user?.id || !latestAnnouncement?.id) return;
+    markAnnouncementsSeen(user.id, courseId, [latestAnnouncement.id]);
+  }, [instructorView, user?.id, courseId, latestAnnouncement?.id]);
+
   const imageUrl = useMemo(() => getCourseImageUrl(course), [course]);
 
   const handleAddAnnouncement = (event) => {
@@ -154,46 +158,13 @@ export default function CourseDetailsPage() {
     }
   };
 
-  const handleAddMaterial = async (event) => {
+  const handleAddFolder = (event) => {
     event.preventDefault();
-    if (!materialForm.title.trim()) return;
-
-    setSavingMaterial(true);
-    try {
-      // Build FormData for multipart endpoint backend upload
-      const formData = new FormData();
-      formData.append('title', materialForm.title.trim());
-      formData.append('description', materialForm.description.trim());
-      formData.append('material_type', materialForm.material_type);
-
-      if (materialForm.link.trim()) {
-        formData.append('link', materialForm.link.trim());
-      }
-      if (file) {
-        formData.append('file', file);
-      }
-
-      if (coursesApi.addCourseMaterial) {
-        await coursesApi.addCourseMaterial(courseId, formData);
-        await fetchMaterials();
-      } else {
-        // Local Workspace Fallback
-        courseWorkspace.addMaterial(courseId, {
-          ...materialForm,
-          file_name: file?.name,
-        });
-        setMaterials(courseWorkspace.getMaterials(courseId));
-      }
-
-      // Reset form
-      setMaterialForm({ title: '', description: '', link: '', material_type: 'PDF' });
-      setFile(null);
-      setIsMaterialOpen(false);
-    } catch (err) {
-      alert(err?.response?.data?.detail || err?.userMessage || 'Failed to save course material.');
-    } finally {
-      setSavingMaterial(false);
-    }
+    if (!folderFormTitle.trim()) return;
+    courseWorkspace.addFolder(courseId, { title: folderFormTitle });
+    setFolderFormTitle('');
+    setIsFolderOpen(false);
+    setFolders(courseWorkspace.getFolders(courseId));
   };
 
   if (loading) {
@@ -322,36 +293,53 @@ export default function CourseDetailsPage() {
           </form>
         )}
 
-        {announcements.length === 0 ? (
+        {!latestAnnouncement ? (
           <div className="rounded-2xl border border-dashed border-amber-300 bg-white/70 px-4 py-8 text-center text-sm text-slate-500 dark:border-amber-900/40 dark:bg-slate-950/20 dark:text-slate-400">
             No announcements yet.
           </div>
         ) : (
-          <div className="space-y-3">
-            {announcements.map((item) => (
-              <article
-                key={item.id}
-                className="rounded-2xl border border-amber-100 bg-white p-4 shadow-sm dark:border-amber-900/30 dark:bg-slate-950/40"
-              >
-                <div className="flex items-start gap-3">
-                  <span className="mt-0.5 rounded-xl bg-amber-50 p-2 text-amber-700 dark:bg-amber-950 dark:text-amber-200">
-                    <Bell className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h3 className="font-semibold text-slate-900 dark:text-white">{item.title}</h3>
-                      <span className="text-xs text-slate-500">{formatDate(item.created_at)}</span>
+          <div className="space-y-4">
+            <article className="rounded-2xl border border-amber-100 bg-white p-4 shadow-sm dark:border-amber-900/30 dark:bg-slate-950/40">
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 rounded-xl bg-amber-50 p-2 text-amber-700 dark:bg-amber-950 dark:text-amber-200">
+                  <Bell className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-slate-900 dark:text-white">
+                        {latestAnnouncement.title}
+                      </h3>
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800 dark:bg-amber-950 dark:text-amber-200">
+                        Latest
+                      </span>
                     </div>
-                    <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600 dark:text-slate-300">
-                      {item.body || item.content || item.message}
-                    </p>
-                    <p className="mt-3 text-xs font-medium text-slate-500">
-                      Posted by {item.authorName || item.author || 'Instructor'}
-                    </p>
+                    <span className="text-xs text-slate-500">
+                      {formatDate(latestAnnouncement.created_at)}
+                    </span>
                   </div>
+                  <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600 dark:text-slate-300">
+                    {latestAnnouncement.body ||
+                      latestAnnouncement.content ||
+                      latestAnnouncement.message}
+                  </p>
+                  <p className="mt-3 text-xs font-medium text-slate-500">
+                    Posted by{' '}
+                    {latestAnnouncement.authorName || latestAnnouncement.author || 'Instructor'}
+                  </p>
                 </div>
-              </article>
-            ))}
+              </div>
+            </article>
+
+            {sortedAnnouncements.length > 1 && (
+              <Link
+                to={announcementsPath}
+                className="inline-flex items-center gap-2 text-sm font-semibold text-amber-800 transition hover:text-amber-900 dark:text-amber-300 dark:hover:text-amber-200"
+              >
+                See rest of announcements
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
           </div>
         )}
       </section>
@@ -363,165 +351,74 @@ export default function CourseDetailsPage() {
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="rounded-2xl bg-[#e6f2e8] p-3 text-[#16623f] dark:bg-emerald-950 dark:text-emerald-300">
-                <FileText className="h-5 w-5" />
+                <Folder className="h-5 w-5" />
               </span>
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.12em] text-emerald-700">Materials</p>
-                <h2 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">Course materials</h2>
+                <h2 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">Course folders</h2>
               </div>
             </div>
             {instructorView && (
               <button
                 type="button"
-                onClick={() => setIsMaterialOpen((open) => !open)}
+                onClick={() => setIsFolderOpen((open) => !open)}
                 className="inline-flex items-center gap-2 rounded-xl bg-[#16623f] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#104d32]"
               >
                 <Plus className="h-4 w-4" />
-                Add material
+                Add folder
               </button>
             )}
           </div>
 
-          {/* ADD MATERIAL FORM */}
-          {instructorView && isMaterialOpen && (
-            <form onSubmit={handleAddMaterial} className="mb-5 space-y-3 rounded-2xl border border-[#dbe7dc] bg-[#f4f8f3] p-4 dark:border-slate-700 dark:bg-slate-950/40">
-              <div>
-                <input
-                  required
-                  value={materialForm.title}
-                  onChange={(event) => setMaterialForm((current) => ({ ...current, title: event.target.value }))}
-                  placeholder="Material title"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-700 dark:border-slate-700 dark:bg-slate-800"
-                />
-              </div>
-
-              <div>
-                <select
-                  value={materialForm.material_type}
-                  onChange={(event) => setMaterialForm((current) => ({ ...current, material_type: event.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-700 dark:border-slate-700 dark:bg-slate-800"
-                >
-                  <option value="PDF">PDF / Document</option>
-                  <option value="VIDEO">Video Content</option>
-                </select>
-              </div>
-
-              <div>
-                <textarea
-                  rows={3}
-                  value={materialForm.description}
-                  onChange={(event) => setMaterialForm((current) => ({ ...current, description: event.target.value }))}
-                  placeholder="Short description"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-700 dark:border-slate-700 dark:bg-slate-800"
-                />
-              </div>
-
-              {/* PDF or Video File Binary Input */}
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase text-slate-500">Attach File (PDF / Video)</label>
-                <input
-                  type="file"
-                  accept=".pdf,.mp4,.mkv,.avi"
-                  onChange={(e) => setFile(e.target.files[0])}
-                  className="w-full text-sm text-slate-500 file:mr-4 file:rounded-xl file:border-0 file:bg-[#16623f] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#104d32]"
-                />
-              </div>
-
-              {/* Optional Link Input */}
-              <div>
-                <input
-                  type="url"
-                  value={materialForm.link}
-                  onChange={(event) => setMaterialForm((current) => ({ ...current, link: event.target.value }))}
-                  placeholder="External URL / Link (optional)"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-700 dark:border-slate-700 dark:bg-slate-800"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-1">
+          {instructorView && isFolderOpen && (
+            <form onSubmit={handleAddFolder} className="mb-5 space-y-3 rounded-2xl border border-[#dbe7dc] bg-[#f4f8f3] p-4 dark:border-slate-700 dark:bg-slate-950/40">
+              <input
+                required
+                value={folderFormTitle}
+                onChange={(e) => setFolderFormTitle(e.target.value)}
+                placeholder="Folder name (e.g. Week 1 Lectures)"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-700 dark:border-slate-700 dark:bg-slate-800"
+              />
+              <div className="flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setIsMaterialOpen(false)}
+                  onClick={() => setIsFolderOpen(false)}
                   className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={savingMaterial}
-                  className="rounded-xl bg-[#16623f] px-4 py-2 text-sm font-semibold text-white hover:bg-[#104d32] disabled:opacity-70"
+                  className="rounded-xl bg-[#16623f] px-4 py-2 text-sm font-semibold text-white hover:bg-[#104d32]"
                 >
-                  {savingMaterial ? 'Uploading...' : 'Save material'}
+                  Create folder
                 </button>
               </div>
             </form>
           )}
 
-          {/* MATERIAL LIST */}
-          {materials.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center dark:border-slate-700 dark:bg-slate-800/40">
-              <BookOpen className="mx-auto h-7 w-7 text-emerald-700" />
-              <p className="mt-3 text-sm text-slate-500">No materials uploaded yet.</p>
+          {folders.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-400">
+              No folders created yet.
             </div>
           ) : (
-            <div className="space-y-3">
-              {materials.map((item) => {
-                const resourceUrl = resolveMediaUrl(item.file || item.file_url || item.link);
-
-                return (
-                  <article
-                    key={item.id}
-                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50"
-                  >
-                    <div className="flex flex-col gap-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            {item.material_type === 'VIDEO' ? (
-                              <Video className="h-4 w-4 text-emerald-700" />
-                            ) : (
-                              <FileText className="h-4 w-4 text-emerald-700" />
-                            )}
-                            <h3 className="font-semibold text-slate-900 dark:text-white">{item.title}</h3>
-                          </div>
-                          {item.description && (
-                            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                              {item.description}
-                            </p>
-                          )}
-                          <p className="mt-3 text-xs text-slate-500">{formatDate(item.created_at)}</p>
-                        </div>
-
-                        {resourceUrl && (
-                          <a
-                            href={resourceUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#16623f] shadow-sm dark:bg-slate-900 dark:text-emerald-300"
-                          >
-                            {item.file || item.file_url ? (
-                              <Upload className="h-3.5 w-3.5" />
-                            ) : (
-                              <Link2 className="h-3.5 w-3.5" />
-                            )}
-                            Open
-                          </a>
-                        )}
-                      </div>
-
-                      {/* Embedded Video Player */}
-                      {item.material_type === 'VIDEO' && resourceUrl && (
-                        <div className="mt-2 overflow-hidden rounded-xl bg-black">
-                          <video controls className="max-h-80 w-full">
-                            <source src={resourceUrl} />
-                            Your browser does not support playing this video.
-                          </video>
-                        </div>
-                      )}
-                    </div>
-                  </article>
-                );
-              })}
+            <div className="grid gap-4 sm:grid-cols-2">
+              {folders.map((folder) => (
+                <Link
+                  key={folder.id}
+                  to={`${materialsBase}/${folder.id}`}
+                  className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 transition hover:border-emerald-300 hover:bg-[#f4f8f3] dark:border-slate-700 dark:bg-slate-800/50 dark:hover:border-emerald-800 dark:hover:bg-slate-800"
+                >
+                  <span className="rounded-2xl bg-[#dfeee3] p-3 text-[#16623f] transition group-hover:bg-[#cce5d4] dark:bg-emerald-950 dark:text-emerald-300">
+                    <Folder className="h-6 w-6" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-slate-900 dark:text-white">{folder.title}</h3>
+                    <p className="mt-1 text-sm text-slate-500">Open folder contents</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 shrink-0 text-slate-400 transition group-hover:text-[#16623f]" />
+                </Link>
+              ))}
             </div>
           )}
         </section>
