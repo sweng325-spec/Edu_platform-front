@@ -21,5 +21,13 @@ export const coursesApi = {
   getmyCourses: (studentId) => API.get(`courses/students/${studentId}/courses`),
   getCourseStudents: (courseId) => API.get(`courses/${courseId}/students/`),
   getCourseMaterials: (courseId) => API.get(`courses/${courseId}/materials/`),
+  
+  // Update or add file upload endpoint
+  addCourseMaterial: (courseId, formData) =>
+    API.post(`courses/${courseId}/materials/`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }),
   getCourseAnnouncements: (courseId) => API.get(`courses/${courseId}/announcements/`),
 };

@@ -8,13 +8,15 @@ import {
   Link2,
   Megaphone,
   Plus,
+  Upload,
   UserRound,
   UsersRound,
+  Video,
 } from 'lucide-react';
 import { coursesApi } from '../api/courses';
 import { AuthContext } from '../context/AuthContext';
 import { courseWorkspace } from '../utils/courseWorkspace';
-import { extractCoursesList, getCourseImageUrl } from '../utils/media';
+import { extractCoursesList, getCourseImageUrl, resolveMediaUrl } from '../utils/media';
 import { isInstructor } from '../utils/roles';
 
 function formatDate(value) {
@@ -42,11 +44,20 @@ export default function CourseDetailsPage() {
   const [materials, setMaterials] = useState([]);
   const [students, setStudents] = useState([]);
 
+  // Announcement Form State
   const [announcementForm, setAnnouncementForm] = useState({ title: '', body: '' });
-  const [materialForm, setMaterialForm] = useState({ title: '', description: '', link: '' });
   const [savingAnnouncement, setSavingAnnouncement] = useState(false);
-  const [savingMaterial, setSavingMaterial] = useState(false);
   const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(false);
+
+  // Material Form State (With Multipart/FormData Support)
+  const [materialForm, setMaterialForm] = useState({
+    title: '',
+    description: '',
+    link: '',
+    material_type: 'PDF',
+  });
+  const [file, setFile] = useState(null);
+  const [savingMaterial, setSavingMaterial] = useState(false);
   const [isMaterialOpen, setIsMaterialOpen] = useState(false);
 
   const backTo = instructorView ? '/instructor/courses' : '/my-courses';
@@ -55,6 +66,20 @@ export default function CourseDetailsPage() {
     setAnnouncements(courseWorkspace.getAnnouncements(courseId));
     setMaterials(courseWorkspace.getMaterials(courseId));
     setStudents(courseWorkspace.getStudents(courseId));
+  };
+
+  const fetchMaterials = async () => {
+    try {
+      const materialsRes = await coursesApi.getCourseMaterials(courseId);
+      const remote = extractCoursesList(materialsRes.data);
+      if (remote.length) {
+        setMaterials(remote);
+      } else {
+        setMaterials(courseWorkspace.getMaterials(courseId));
+      }
+    } catch {
+      setMaterials(courseWorkspace.getMaterials(courseId));
+    }
   };
 
   useEffect(() => {
@@ -80,17 +105,7 @@ export default function CourseDetailsPage() {
           setAnnouncements(courseWorkspace.getAnnouncements(courseId));
         }
 
-        try {
-          const materialsRes = await coursesApi.getCourseMaterials(courseId);
-          const remote = extractCoursesList(materialsRes.data);
-          if (remote.length) {
-            setMaterials(remote);
-          } else {
-            setMaterials(courseWorkspace.getMaterials(courseId));
-          }
-        } catch {
-          setMaterials(courseWorkspace.getMaterials(courseId));
-        }
+        await fetchMaterials();
 
         try {
           const studentsRes = await coursesApi.getCourseStudents(courseId);
@@ -139,15 +154,43 @@ export default function CourseDetailsPage() {
     }
   };
 
-  const handleAddMaterial = (event) => {
+  const handleAddMaterial = async (event) => {
     event.preventDefault();
     if (!materialForm.title.trim()) return;
+
     setSavingMaterial(true);
     try {
-      courseWorkspace.addMaterial(courseId, materialForm);
-      setMaterialForm({ title: '', description: '', link: '' });
+      // Build FormData for multipart endpoint backend upload
+      const formData = new FormData();
+      formData.append('title', materialForm.title.trim());
+      formData.append('description', materialForm.description.trim());
+      formData.append('material_type', materialForm.material_type);
+
+      if (materialForm.link.trim()) {
+        formData.append('link', materialForm.link.trim());
+      }
+      if (file) {
+        formData.append('file', file);
+      }
+
+      if (coursesApi.addCourseMaterial) {
+        await coursesApi.addCourseMaterial(courseId, formData);
+        await fetchMaterials();
+      } else {
+        // Local Workspace Fallback
+        courseWorkspace.addMaterial(courseId, {
+          ...materialForm,
+          file_name: file?.name,
+        });
+        setMaterials(courseWorkspace.getMaterials(courseId));
+      }
+
+      // Reset form
+      setMaterialForm({ title: '', description: '', link: '', material_type: 'PDF' });
+      setFile(null);
       setIsMaterialOpen(false);
-      setMaterials(courseWorkspace.getMaterials(courseId));
+    } catch (err) {
+      alert(err?.response?.data?.detail || err?.userMessage || 'Failed to save course material.');
     } finally {
       setSavingMaterial(false);
     }
@@ -180,6 +223,7 @@ export default function CourseDetailsPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 pb-10">
+      {/* NAVIGATION BACK */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           to={backTo}
@@ -190,6 +234,7 @@ export default function CourseDetailsPage() {
         </Link>
       </div>
 
+      {/* HEADER HERO BANNER */}
       <section className="overflow-hidden rounded-[30px] border border-[#dbe7dc] bg-white shadow-[0_18px_45px_-28px_rgba(17,74,54,0.55)] dark:border-slate-800 dark:bg-slate-900">
         <div className="relative h-48 bg-gradient-to-br from-[#174f3b] via-[#286b4d] to-[#99be70] sm:h-56">
           {imageUrl && (
@@ -215,6 +260,7 @@ export default function CourseDetailsPage() {
         </div>
       </section>
 
+      {/* ANNOUNCEMENTS SECTION */}
       <section className="rounded-[28px] border border-amber-200/80 bg-gradient-to-br from-[#fff8eb] to-white p-6 shadow-[0_10px_30px_rgba(27,67,50,0.05)] dark:border-amber-900/40 dark:from-amber-950/20 dark:to-slate-900">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -310,7 +356,9 @@ export default function CourseDetailsPage() {
         )}
       </section>
 
+      {/* LOWER CONTENT GRID: MATERIALS & STUDENTS */}
       <div className={`grid gap-6 ${instructorView ? 'lg:grid-cols-5' : 'lg:grid-cols-1'}`}>
+        {/* MATERIALS SECTION */}
         <section className={`rounded-[28px] border border-[#dbe7dc] bg-white p-6 shadow-[0_10px_30px_rgba(27,67,50,0.05)] dark:border-slate-800 dark:bg-slate-900 ${instructorView ? 'lg:col-span-3' : ''}`}>
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -334,29 +382,63 @@ export default function CourseDetailsPage() {
             )}
           </div>
 
+          {/* ADD MATERIAL FORM */}
           {instructorView && isMaterialOpen && (
             <form onSubmit={handleAddMaterial} className="mb-5 space-y-3 rounded-2xl border border-[#dbe7dc] bg-[#f4f8f3] p-4 dark:border-slate-700 dark:bg-slate-950/40">
-              <input
-                required
-                value={materialForm.title}
-                onChange={(event) => setMaterialForm((current) => ({ ...current, title: event.target.value }))}
-                placeholder="Material title"
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-700 dark:border-slate-700 dark:bg-slate-800"
-              />
-              <textarea
-                rows={3}
-                value={materialForm.description}
-                onChange={(event) => setMaterialForm((current) => ({ ...current, description: event.target.value }))}
-                placeholder="Short description"
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-700 dark:border-slate-700 dark:bg-slate-800"
-              />
-              <input
-                value={materialForm.link}
-                onChange={(event) => setMaterialForm((current) => ({ ...current, link: event.target.value }))}
-                placeholder="Link (optional)"
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-700 dark:border-slate-700 dark:bg-slate-800"
-              />
-              <div className="flex justify-end gap-2">
+              <div>
+                <input
+                  required
+                  value={materialForm.title}
+                  onChange={(event) => setMaterialForm((current) => ({ ...current, title: event.target.value }))}
+                  placeholder="Material title"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-700 dark:border-slate-700 dark:bg-slate-800"
+                />
+              </div>
+
+              <div>
+                <select
+                  value={materialForm.material_type}
+                  onChange={(event) => setMaterialForm((current) => ({ ...current, material_type: event.target.value }))}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-700 dark:border-slate-700 dark:bg-slate-800"
+                >
+                  <option value="PDF">PDF / Document</option>
+                  <option value="VIDEO">Video Content</option>
+                </select>
+              </div>
+
+              <div>
+                <textarea
+                  rows={3}
+                  value={materialForm.description}
+                  onChange={(event) => setMaterialForm((current) => ({ ...current, description: event.target.value }))}
+                  placeholder="Short description"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-700 dark:border-slate-700 dark:bg-slate-800"
+                />
+              </div>
+
+              {/* PDF or Video File Binary Input */}
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase text-slate-500">Attach File (PDF / Video)</label>
+                <input
+                  type="file"
+                  accept=".pdf,.mp4,.mkv,.avi"
+                  onChange={(e) => setFile(e.target.files[0])}
+                  className="w-full text-sm text-slate-500 file:mr-4 file:rounded-xl file:border-0 file:bg-[#16623f] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#104d32]"
+                />
+              </div>
+
+              {/* Optional Link Input */}
+              <div>
+                <input
+                  type="url"
+                  value={materialForm.link}
+                  onChange={(event) => setMaterialForm((current) => ({ ...current, link: event.target.value }))}
+                  placeholder="External URL / Link (optional)"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-700 dark:border-slate-700 dark:bg-slate-800"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => setIsMaterialOpen(false)}
@@ -369,12 +451,13 @@ export default function CourseDetailsPage() {
                   disabled={savingMaterial}
                   className="rounded-xl bg-[#16623f] px-4 py-2 text-sm font-semibold text-white hover:bg-[#104d32] disabled:opacity-70"
                 >
-                  {savingMaterial ? 'Saving...' : 'Save material'}
+                  {savingMaterial ? 'Uploading...' : 'Save material'}
                 </button>
               </div>
             </form>
           )}
 
+          {/* MATERIAL LIST */}
           {materials.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center dark:border-slate-700 dark:bg-slate-800/40">
               <BookOpen className="mx-auto h-7 w-7 text-emerald-700" />
@@ -382,37 +465,68 @@ export default function CourseDetailsPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {materials.map((item) => (
-                <article
-                  key={item.id}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="font-semibold text-slate-900 dark:text-white">{item.title}</h3>
-                      {item.description && (
-                        <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{item.description}</p>
+              {materials.map((item) => {
+                const resourceUrl = resolveMediaUrl(item.file || item.file_url || item.link);
+
+                return (
+                  <article
+                    key={item.id}
+                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50"
+                  >
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            {item.material_type === 'VIDEO' ? (
+                              <Video className="h-4 w-4 text-emerald-700" />
+                            ) : (
+                              <FileText className="h-4 w-4 text-emerald-700" />
+                            )}
+                            <h3 className="font-semibold text-slate-900 dark:text-white">{item.title}</h3>
+                          </div>
+                          {item.description && (
+                            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                              {item.description}
+                            </p>
+                          )}
+                          <p className="mt-3 text-xs text-slate-500">{formatDate(item.created_at)}</p>
+                        </div>
+
+                        {resourceUrl && (
+                          <a
+                            href={resourceUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#16623f] shadow-sm dark:bg-slate-900 dark:text-emerald-300"
+                          >
+                            {item.file || item.file_url ? (
+                              <Upload className="h-3.5 w-3.5" />
+                            ) : (
+                              <Link2 className="h-3.5 w-3.5" />
+                            )}
+                            Open
+                          </a>
+                        )}
+                      </div>
+
+                      {/* Embedded Video Player */}
+                      {item.material_type === 'VIDEO' && resourceUrl && (
+                        <div className="mt-2 overflow-hidden rounded-xl bg-black">
+                          <video controls className="max-h-80 w-full">
+                            <source src={resourceUrl} />
+                            Your browser does not support playing this video.
+                          </video>
+                        </div>
                       )}
-                      <p className="mt-3 text-xs text-slate-500">{formatDate(item.created_at)}</p>
                     </div>
-                    {item.link && (
-                      <a
-                        href={item.link}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-3 py-2 text-xs font-semibold text-[#16623f] shadow-sm dark:bg-slate-900 dark:text-emerald-300"
-                      >
-                        <Link2 className="h-3.5 w-3.5" />
-                        Open
-                      </a>
-                    )}
-                  </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           )}
         </section>
 
+        {/* ENROLLED LEARNERS SECTION */}
         {instructorView && (
           <section className="rounded-[28px] border border-[#dbe7dc] bg-white p-6 shadow-[0_10px_30px_rgba(27,67,50,0.05)] dark:border-slate-800 dark:bg-slate-900 lg:col-span-2">
             <div className="mb-5 flex items-center gap-3">
