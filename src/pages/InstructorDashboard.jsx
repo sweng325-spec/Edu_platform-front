@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, ClipboardCheck, GraduationCap, Plus, UsersRound, CheckCircle2, ArrowRight, CalendarDays, Clock3 } from 'lucide-react';
+import { BarChart3, BookOpen, ClipboardCheck, GraduationCap, CheckCircle2, ArrowRight, CalendarDays, Clock3 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
@@ -13,7 +13,6 @@ import {
 const actions = [
   { to: '/instructor/courses', label: 'Manage courses', detail: 'Create and update your courses', icon: BookOpen },
   { to: '/instructor/assignments', label: 'Review submissions', detail: 'Grade work and share feedback', icon: ClipboardCheck },
-  { to: '/instructor/students', label: 'View your students', detail: 'Monitor learners in your courses', icon: UsersRound },
 ];
 
 export default function InstructorDashboard() {
@@ -68,9 +67,7 @@ export default function InstructorDashboard() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-5 md:grid-cols-3">{actions.map(({ to, label, detail, icon: Icon }) => <Link key={to} to={to} className="group rounded-[25px] border border-[#dbe7dc] bg-white p-5 shadow-[0_10px_30px_rgba(27,67,50,0.05)] transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"><span className="inline-flex rounded-2xl bg-[#e6f2e8] p-3 text-[#16623f] dark:bg-emerald-950 dark:text-emerald-300"><Icon className="h-5 w-5" /></span><h2 className="mt-5 font-semibold text-slate-900 dark:text-white">{label}</h2><p className="mt-1 text-sm leading-6 text-slate-500">{detail}</p></Link>)}</section>
-      <section className="rounded-[28px] border border-[#dbe7dc] bg-white p-6 shadow-[0_10px_30px_rgba(27,67,50,0.05)] dark:border-slate-800 dark:bg-slate-900"><div className="flex items-center gap-3"><span className="rounded-2xl bg-[#e6f2e8] p-3 text-[#16623f] dark:bg-emerald-950 dark:text-emerald-300"><BarChart3 className="h-5 w-5" /></span><div><h2 className="text-xl font-semibold text-slate-900 dark:text-white">Course performance</h2><p className="mt-1 text-sm text-slate-500">Use your performance workspace to review progress for students enrolled in your courses.</p></div></div><Link to="/instructor/performance" className="mt-5 inline-flex rounded-xl bg-[#16623f] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#104d32]">Open performance</Link></section>
-
+      {/* Moved To-Do List up to the top for maximum visibility */}
       <section className="rounded-[28px] border border-[#dbe7dc] bg-white p-6 shadow-[0_10px_30px_rgba(27,67,50,0.05)] dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-6 flex items-center gap-3">
           <span className="rounded-2xl bg-[#e6f2e8] p-3 text-[#16623f] dark:bg-emerald-950 dark:text-emerald-300">
@@ -148,6 +145,36 @@ export default function InstructorDashboard() {
           Manage All Tasks
           <ArrowRight className="h-4 w-4" />
         </Link>
+      </section>
+
+      {/* Action cards (without the student view card) */}
+      <section className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        {actions.map(({ to, label, detail, icon: Icon }) => (
+          <Link
+            key={to}
+            to={to}
+            className="group rounded-[25px] border border-[#dbe7dc] bg-white p-5 shadow-[0_10px_30px_rgba(27,67,50,0.05)] transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+          >
+            <span className="inline-flex rounded-2xl bg-[#e6f2e8] p-3 text-[#16623f] dark:bg-emerald-950 dark:text-emerald-300">
+              <Icon className="h-5 w-5" />
+            </span>
+            <h2 className="mt-5 font-semibold text-slate-900 dark:text-white">{label}</h2>
+            <p className="mt-1 text-sm leading-6 text-slate-500">{detail}</p>
+          </Link>
+        ))}
+      </section>
+
+      <section className="rounded-[28px] border border-[#dbe7dc] bg-white p-6 shadow-[0_10px_30px_rgba(27,67,50,0.05)] dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex items-center gap-3">
+          <span className="rounded-2xl bg-[#e6f2e8] p-3 text-[#16623f] dark:bg-emerald-950 dark:text-emerald-300">
+            <BarChart3 className="h-5 w-5" />
+          </span>
+          <div>
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Course performance</h2>
+            <p className="mt-1 text-sm text-slate-500">Use your performance workspace to review progress for students enrolled in your courses.</p>
+          </div>
+        </div>
+        <Link to="/instructor/performance" className="mt-5 inline-flex rounded-xl bg-[#16623f] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#104d32]">Open performance</Link>
       </section>
     </div>
   );

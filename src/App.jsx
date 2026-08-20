@@ -30,6 +30,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import AccessDenied from './pages/AccessDenied';
 import RoleFeaturePage from './pages/RoleFeaturePage';
 import MyCoursesPage from './pages/MyCoursesPage';
+import Profile from './pages/Profile'; // Import your Profile page
+
 import { ROLES } from './utils/roles';
 
 
@@ -85,6 +87,8 @@ function Layout({ darkMode, setDarkMode }) {
           <Route path="/progress" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />
           <Route path="/notifications" element={<RoleRoute allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]}><RoleFeaturePage /></RoleRoute>} />
           <Route path="/profile" element={<ProtectedRoute><RoleFeaturePage /></ProtectedRoute>} />
+          // Inside your router setup:
+          <Route path="/profile" element={<Profile />} />
 
           <Route
             path="/dashboard"

@@ -29,7 +29,7 @@ export const coursesApi = {
         'Content-Type': 'multipart/form-data',
       },
     }),
-  getCourseAnnouncements: (courseId) => API.get(`courses/${courseId}/announcements/`),
+  getCourseAnnouncements: (courseId) => API.get(`courses/${courseId}/notifications/`),
   // Add this inside your coursesApi object
   deleteCourseMaterial: (courseId, materialId) => 
     API.delete(`courses/materials/${materialId}/`),

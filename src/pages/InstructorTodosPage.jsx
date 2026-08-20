@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { CalendarDays, Clock3, ArrowLeft, PencilLine, Trash2, X } from 'lucide-react';
+import { CalendarDays, Clock3, PencilLine, Trash2, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { todosApi } from '../api/todos';
@@ -233,18 +233,9 @@ export default function InstructorTodosPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-10">
       <section className="rounded-[30px] bg-[#123f30] px-6 py-8 text-white shadow-[0_18px_45px_-24px_rgba(17,74,54,0.8)] sm:px-8">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#d9edc7]">Weekly plan</p>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">My To-Do List</h1>
-          </div>
-          <Link
-            to="/instructor"
-            className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/15"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Dashboard
-          </Link>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#d9edc7]">Weekly plan</p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">My To-Do List</h1>
         </div>
       </section>
 

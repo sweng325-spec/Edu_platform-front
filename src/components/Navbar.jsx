@@ -9,7 +9,7 @@ import { isInstructor } from '../utils/roles';
 
 const navigationFor = (role) => {
   if (role === 'ADMIN') return [{ to: '/admin', label: 'Dashboard' }, { to: '/admin/users', label: 'Users' }, { to: '/admin/students', label: 'Students' }, { to: '/admin/instructors', label: 'Instructors' }, { to: '/admin/courses', label: 'Courses' }, { to: '/admin/enrollments', label: 'Enrollments' }, { to: '/admin/statistics', label: 'Statistics' }, { to: '/admin/settings', label: 'Settings' }];
-  if (isInstructor(role)) return [{ to: '/instructor', label: 'Dashboard' }, { to: '/instructor/courses', label: 'My Courses' }, { to: '/instructor/lessons', label: 'Lessons' }, { to: '/instructor/assignments', label: 'Assignments' }, { to: '/instructor/quizzes', label: 'Quizzes' }, { to: '/instructor/students', label: 'Students' }, { to: '/instructor/performance', label: 'Performance' }];
+  if (isInstructor(role)) return [{ to: '/instructor', label: 'Dashboard' }, { to: '/instructor/courses', label: 'My Courses' }, { to: '/instructor/assignments', label: 'Assignments' }, { to: '/instructor/quizzes', label: 'Quizzes' }, { to: '/instructor/performance', label: 'Performance' }];
   return [{ to: '/student', label: 'Dashboard' }, { to: '/courses', label: 'Browse Courses' }, { to: '/my-courses', label: 'My Courses' }, { to: '/assignments', label: 'Assignments' }, { to: '/quizzes', label: 'Quizzes' }];
 };
 
@@ -21,6 +21,7 @@ export default function Navbar({ darkMode, setDarkMode }) {
   const navigate = useNavigate();
   const menuRef = useRef(null);
   const notificationsRef = useRef(null);
+  const userIsInstructor = isInstructor(user?.role);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -37,7 +38,7 @@ export default function Navbar({ darkMode, setDarkMode }) {
   }, []);
 
   useEffect(() => {
-    if (!user?.id || isInstructor(user.role)) {
+    if (!user?.id || userIsInstructor) {
       setCourseNotifications([]);
       return undefined;
     }
@@ -72,10 +73,18 @@ export default function Navbar({ darkMode, setDarkMode }) {
     };
 
     loadNotifications();
+
+    const handleAnnouncementsSeen = () => {
+      loadNotifications();
+    };
+
+    window.addEventListener('announcements-seen', handleAnnouncementsSeen);
+
     return () => {
       mounted = false;
+      window.removeEventListener('announcements-seen', handleAnnouncementsSeen);
     };
-  }, [user?.id, user?.role]);
+  }, [user?.id, userIsInstructor]);
 
   const handleLogout = () => {
     logout();
@@ -87,6 +96,7 @@ export default function Navbar({ darkMode, setDarkMode }) {
     return null;
   }
   const navItems = navigationFor(user.role);
+  const displayName = user.username || user.name || user.email?.split('@')[0] || 'Account';
 
   return (
     <div className="sticky top-0 z-50 bg-slate-50/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 backdrop-blur-sm">
@@ -134,14 +144,14 @@ export default function Navbar({ darkMode, setDarkMode }) {
                 aria-label="Course announcements"
               >
                 <span className="material-symbols-outlined">notifications</span>
-                {courseNotifications.length > 0 && (
+                {!userIsInstructor && courseNotifications.length > 0 && (
                   <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white">
                     {courseNotifications.length}
                   </span>
                 )}
               </button>
 
-              {notificationsOpen && (
+              {notificationsOpen && !userIsInstructor && (
                 <div className="absolute right-0 top-full mt-3 w-80 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-950">
                   <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
                     <p className="text-sm font-semibold text-slate-900 dark:text-white">Announcements</p>
@@ -177,13 +187,26 @@ export default function Navbar({ darkMode, setDarkMode }) {
               <button
                 type="button"
                 onClick={() => setProfileOpen((open) => !open)}
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-700 shadow-sm transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                className="relative flex items-center gap-2.5 rounded-full bg-emerald-50 px-3 py-1.5 text-emerald-700 shadow-sm transition hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+                title={userIsInstructor ? 'Instructor Account' : 'Student Account'}
               >
-                <span className="material-symbols-outlined text-2xl">account_circle</span>
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-emerald-700 shadow-sm dark:bg-emerald-900 dark:text-emerald-200">
+                  <span className="material-symbols-outlined text-xl">
+                    {userIsInstructor ? 'menu_book' : 'school'}
+                  </span>
+                </span>
+                <span className="max-w-[120px] truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
+                  {displayName}
+                </span>
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 top-full mt-3 w-44 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-950">
+                <div className="absolute right-0 top-full mt-3 w-48 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-950">
+                  <div className="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+                      {userIsInstructor ? 'Instructor View' : 'Student View'}
+                    </p>
+                  </div>
                   <NavLink
                     to="/profile"
                     onClick={() => setProfileOpen(false)}
