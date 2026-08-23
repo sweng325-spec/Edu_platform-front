@@ -30,7 +30,7 @@ export default function InstructorDashboard() {
       try {
         setLoadingTodos(true);
         const response = await todosApi.getAllTodos();
-        const normalizedTodos = extractTodosList(response.data).map(normalizeTodo).slice(0, 3);
+        const normalizedTodos = extractTodosList(response.data).map(normalizeTodo).slice(0, 2);
         setTodos(normalizedTodos);
         setErrorTodos(null);
       } catch (err) {
@@ -54,14 +54,6 @@ export default function InstructorDashboard() {
               <span className="inline-flex items-center gap-2 rounded-full border border-[#123f30]/15 bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#123f30]"><GraduationCap className="h-3.5 w-3.5" /> Instructor workspace</span>
               <h1 className="mt-5 text-3xl font-semibold tracking-tight text-[#123f30] sm:text-4xl">Lead learning with confidence.</h1>
               <p className="mt-3 max-w-xl text-base leading-7 text-[#123f30]/80">Manage the courses you own, support your students, and keep your teaching momentum strong.</p>
-            </div>
-
-            <div className="mt-[-6px] flex items-center gap-3 rounded-[22px] border border-[#123f30]/10 bg-[#edf5ef]/90 px-4 py-3 shadow-sm backdrop-blur-sm dark:border-[#dfeee3]/10 dark:bg-[#dfeee3]/10">
-              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#dfeee3] text-[#123f30] dark:bg-[#123f30] dark:text-[#dfeee3]"><BarChart3 className="h-5 w-5" /></span>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#123f30]/75 dark:text-[#e8f7ef]">Performance</p>
-                <p className="mt-1 text-2xl font-semibold text-[#123f30] dark:text-[#e8f7ef]">92%</p>
-              </div>
             </div>
           </div>
         </div>

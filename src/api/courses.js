@@ -30,6 +30,9 @@ export const coursesApi = {
       },
     }),
   getCourseAnnouncements: (courseId) => API.get(`courses/${courseId}/notifications/`),
+  postCourseAnnouncements: (courseId, announcementData) => API.post(`courses/${courseId}/notifications/`, announcementData),
+  updateCourseNotifications: (courseId) => API.patch(`courses/${courseId}/notifications/read-all/`),
+  updateOneCourseNotifcation: (notificationId) => API.patch(`courses/notifications/${notificationId}/read/`),
   // Add this inside your coursesApi object
   deleteCourseMaterial: (courseId, materialId) => 
     API.delete(`courses/materials/${materialId}/`),

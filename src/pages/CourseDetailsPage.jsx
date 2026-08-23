@@ -66,6 +66,20 @@ export default function CourseDetailsPage() {
     setStudents(courseWorkspace.getStudents(courseId));
   };
 
+  const fetchAnnouncements = async () => {
+    try {
+      const announcementsRes = await coursesApi.getCourseAnnouncements(courseId);
+      const remote = extractCoursesList(announcementsRes.data);
+      if (remote.length) {
+        setAnnouncements(remote);
+      } else {
+        setAnnouncements(courseWorkspace.getAnnouncements(courseId));
+      }
+    } catch {
+      setAnnouncements(courseWorkspace.getAnnouncements(courseId));
+    }
+  };
+
   const fetchMaterials = async () => {
     try {
       const materialsRes = await coursesApi.getCourseMaterials(courseId);
@@ -92,18 +106,7 @@ export default function CourseDetailsPage() {
         if (!mounted) return;
         setCourse(response.data);
 
-        try {
-          const announcementsRes = await coursesApi.getCourseAnnouncements(courseId);
-          const remote = extractCoursesList(announcementsRes.data);
-          if (remote.length) {
-            setAnnouncements(remote);
-          } else {
-            setAnnouncements(courseWorkspace.getAnnouncements(courseId));
-          }
-        } catch {
-          setAnnouncements(courseWorkspace.getAnnouncements(courseId));
-        }
-
+        await fetchAnnouncements();
         await fetchMaterials();
 
         try {
@@ -140,21 +143,42 @@ export default function CourseDetailsPage() {
 
   const imageUrl = useMemo(() => getCourseImageUrl(course), [course]);
 
-  const handleAddAnnouncement = (event) => {
+  // OPTIMIZED ANNOUNCEMENT HANDLER
+  const handleAddAnnouncement = async (event) => {
     event.preventDefault();
     if (!announcementForm.title.trim() || !announcementForm.body.trim()) return;
     setSavingAnnouncement(true);
+
+    const newAnnouncementData = {
+      id: Date.now().toString(),
+      title: announcementForm.title,
+      body: announcementForm.body,
+      content: announcementForm.body,
+      created_at: new Date().toISOString(),
+      authorName: user?.username || user?.email || 'Instructor',
+    };
+
     try {
-      courseWorkspace.addAnnouncement(courseId, {
+      // 1. Send to API backend
+      await coursesApi.postCourseAnnouncements(courseId, {
         title: announcementForm.title,
+        content: announcementForm.body,
         body: announcementForm.body,
-        authorName: user?.username || user?.email || 'Instructor',
       });
+    } catch (err) {
+      console.error('Backend post failed, syncing to local workspace fallback', err);
+    } finally {
+      // 2. Also save to workspace so fallback pages and other views pick it up instantly
+      courseWorkspace.addAnnouncement(courseId, newAnnouncementData);
+
+      // 3. Immediately update UI state so it shows up right away
+      setAnnouncements((prev) => [newAnnouncementData, ...prev]);
       setAnnouncementForm({ title: '', body: '' });
       setIsAnnouncementOpen(false);
-      setAnnouncements(courseWorkspace.getAnnouncements(courseId));
-    } finally {
       setSavingAnnouncement(false);
+
+      // 4. Try fetching remote data again to sync up
+      fetchAnnouncements();
     }
   };
 

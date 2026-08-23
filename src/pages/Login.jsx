@@ -95,9 +95,7 @@ export default function Login() {
                   <label className="block text-[14px] font-semibold uppercase tracking-[0.05em] text-[#191c1c]" htmlFor="password">
                     Password
                   </label>
-                  <button type="button" className="text-[14px] font-semibold text-[#0e6c4a] transition hover:text-[#012d1d]">
-                    Forgot password?
-                  </button>
+
                 </div>
                 <div className="relative rounded-md shadow-sm">
                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">

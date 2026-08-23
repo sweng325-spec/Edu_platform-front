@@ -15,14 +15,15 @@ export function normalizeSubtask(subtask = {}) {
 }
 
 export function normalizeTodo(task = {}) {
+  // Convert stored hours from backend to minutes for UI entry/display
+  const hours = task.expected_duration_hours;
+  const minutes = hours !== null && hours !== undefined && hours !== '' ? Math.round(Number(hours) * 60) : '';
+
   return {
     id: task.id,
     title: task.title || 'Untitled',
     deadline_date: task.deadline_date || '',
-    expected_duration_hours:
-      task.expected_duration_hours === null || task.expected_duration_hours === undefined
-        ? ''
-        : String(task.expected_duration_hours),
+    expected_duration_hours: minutes !== '' ? String(minutes) : '',
     completed: Boolean(task.completed),
     subtasks: Array.isArray(task.subtasks) ? task.subtasks.map(normalizeSubtask) : [],
   };
@@ -58,8 +59,9 @@ export function buildTodoPayload({
   ) {
     payload.expected_duration_hours = null;
   } else {
-    const parsed = Number(expected_duration_hours);
-    payload.expected_duration_hours = Number.isFinite(parsed) ? parsed : null;
+    const parsedMinutes = Number(expected_duration_hours);
+    // Convert minutes back to hours for backend storage (e.g. 30 mins -> 0.5 hours)
+    payload.expected_duration_hours = Number.isFinite(parsedMinutes) ? parsedMinutes / 60 : null;
   }
 
   if (typeof completed === 'boolean') {
@@ -71,14 +73,16 @@ export function buildTodoPayload({
 
 export function formatDurationHours(value) {
   if (value === '' || value === null || value === undefined) return '—';
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return String(value);
-  if (parsed === 1) return '1 hr';
-  if (parsed < 1) {
-    const minutes = Math.round(parsed * 60);
-    return `${minutes} min`;
+  const totalMinutes = Number(value);
+  if (!Number.isFinite(totalMinutes) || totalMinutes === 0) return '—';
+  
+  if (totalMinutes < 60) {
+    return `${totalMinutes} mins`;
   }
-  return `${parsed} hrs`;
+  
+  const hrs = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  return mins > 0 ? `${hrs}h ${mins}m` : `${hrs} hrs`;
 }
 
 export function formatDeadline(value) {
@@ -98,6 +102,6 @@ export function formatDeadline(value) {
 export const emptyTodoForm = {
   title: '',
   deadline_date: '',
-  expected_duration_hours: '0.25',
+  expected_duration_hours: '15',
   subtasks: [],
 };

@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { CalendarDays, Clock3, PencilLine, Trash2, X } from 'lucide-react';
+import { CalendarDays, Clock3, PencilLine, Trash2, X, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { todosApi } from '../api/todos';
@@ -419,16 +419,16 @@ export default function InstructorTodosPage() {
                 </label>
 
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                  Duration (hours)
+                  Duration (minutes)
                   <input
                     type="number"
                     name="expected_duration_hours"
                     min="0"
-                    step="0.25"
+                    step="1"
                     value={form.expected_duration_hours}
                     onChange={handleChange}
                     className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                    placeholder="0.25"
+                    placeholder="30"
                   />
                 </label>
               </div>
@@ -492,9 +492,10 @@ export default function InstructorTodosPage() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#16623f] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#104d32]"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#16623f] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#104d32]"
                 >
-                  {editingId ? 'Update task' : 'Create task'}
+                  <CheckCircle2 className="h-4 w-4" />
+                  {editingId ? 'Save changes' : 'Save task'}
                 </button>
               </div>
             </form>

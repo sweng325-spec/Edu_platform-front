@@ -86,7 +86,7 @@ function Layout({ darkMode, setDarkMode }) {
           <Route path="/quizzes" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />
           <Route path="/progress" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />
           <Route path="/notifications" element={<RoleRoute allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]}><RoleFeaturePage /></RoleRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><RoleFeaturePage /></ProtectedRoute>} />
+          {/* <Route path="/profile" element={<ProtectedRoute><RoleFeaturePage /></ProtectedRoute>} /> */}
           // Inside your router setup:
           <Route path="/profile" element={<Profile />} />
 

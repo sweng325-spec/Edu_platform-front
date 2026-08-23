@@ -31,7 +31,7 @@ export default function DashboardPage() {
       try {
         setLoadingTodos(true);
         const response = await todosApi.getAllTodos();
-        const normalizedTodos = extractTodosList(response.data).map(normalizeTodo).slice(0, 3);
+        const normalizedTodos = extractTodosList(response.data).map(normalizeTodo).slice(0, 2);
         setTodos(normalizedTodos);
       } catch (err) {
         console.error('Failed to fetch todos:', err);

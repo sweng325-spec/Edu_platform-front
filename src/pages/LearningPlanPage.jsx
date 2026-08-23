@@ -418,16 +418,16 @@ export default function LearningPlanPage() {
                 </label>
 
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                  Duration (hours)
+                  Duration (minutes)
                   <input
                     type="number"
                     name="expected_duration_hours"
                     min="0"
-                    step="0.25"
+                    step="1"
                     value={form.expected_duration_hours}
                     onChange={handleChange}
                     className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                    placeholder="0.25"
+                    placeholder="30"
                   />
                 </label>
               </div>
