@@ -44,6 +44,7 @@ export default function CourseDetailsPage() {
   // Folder Form State
   const [isFolderOpen, setIsFolderOpen] = useState(false);
   const [folderFormTitle, setFolderFormTitle] = useState('');
+  const [savingFolder, setSavingFolder] = useState(false);
 
   const backTo = instructorView ? '/instructor/courses' : '/my-courses';
   const materialsBase = instructorView
@@ -84,15 +85,24 @@ export default function CourseDetailsPage() {
     try {
       const materialsRes = await coursesApi.getCourseMaterials(courseId);
       const remote = extractCoursesList(materialsRes.data);
-      if (remote.length) {
-        setMaterials(remote);
-      } else {
-        setMaterials(courseWorkspace.getMaterials(courseId));
-      }
+      setMaterials(remote.length ? remote : courseWorkspace.getMaterials(courseId));
     } catch {
       setMaterials(courseWorkspace.getMaterials(courseId));
     }
-    setFolders(courseWorkspace.getFolders(courseId));
+
+    // Fetch Folders from API Endpoint
+    try {
+      const foldersRes = await coursesApi.getFolders(courseId);
+      const remoteFolders = extractCoursesList(foldersRes.data);
+      if (remoteFolders.length) {
+        setFolders(remoteFolders);
+      } else {
+        setFolders(courseWorkspace.getFolders(courseId));
+      }
+    } catch (err) {
+      console.error('Failed to fetch folders from backend, loading workspace fallback:', err);
+      setFolders(courseWorkspace.getFolders(courseId));
+    }
   };
 
   useEffect(() => {
@@ -159,7 +169,6 @@ export default function CourseDetailsPage() {
     };
 
     try {
-      // 1. Send to API backend
       await coursesApi.postCourseAnnouncements(courseId, {
         title: announcementForm.title,
         content: announcementForm.body,
@@ -168,27 +177,54 @@ export default function CourseDetailsPage() {
     } catch (err) {
       console.error('Backend post failed, syncing to local workspace fallback', err);
     } finally {
-      // 2. Also save to workspace so fallback pages and other views pick it up instantly
       courseWorkspace.addAnnouncement(courseId, newAnnouncementData);
-
-      // 3. Immediately update UI state so it shows up right away
       setAnnouncements((prev) => [newAnnouncementData, ...prev]);
       setAnnouncementForm({ title: '', body: '' });
       setIsAnnouncementOpen(false);
       setSavingAnnouncement(false);
-
-      // 4. Try fetching remote data again to sync up
       fetchAnnouncements();
     }
   };
 
-  const handleAddFolder = (event) => {
+  // API DRIVEN FOLDER CREATION
+  const handleAddFolder = async (event) => {
     event.preventDefault();
-    if (!folderFormTitle.trim()) return;
-    courseWorkspace.addFolder(courseId, { title: folderFormTitle });
-    setFolderFormTitle('');
-    setIsFolderOpen(false);
-    setFolders(courseWorkspace.getFolders(courseId));
+    const trimmedTitle = folderFormTitle.trim();
+    if (!trimmedTitle) return;
+
+    setSavingFolder(true);
+
+    const fallbackFolder = {
+      id: Date.now().toString(),
+      title: trimmedTitle,
+      name: trimmedTitle,
+    };
+
+    try {
+      const res = await coursesApi.createFolder(courseId, {
+        name: trimmedTitle,
+        title: trimmedTitle,
+      });
+
+      const createdFolder = {
+        id: res?.data?.id || fallbackFolder.id,
+        title: res?.data?.name || res?.data?.title || fallbackFolder.title,
+        name: res?.data?.name || res?.data?.title || fallbackFolder.name,
+        ...res?.data,
+      };
+
+      courseWorkspace.addFolder(courseId, createdFolder);
+      setFolders((prev) => [...prev, createdFolder]);
+    } catch (err) {
+      console.error('Failed to create folder via API, creating local fallback:', err);
+      courseWorkspace.addFolder(courseId, fallbackFolder);
+      setFolders(courseWorkspace.getFolders(courseId));
+    } finally {
+      setFolderFormTitle('');
+      setIsFolderOpen(false);
+      setSavingFolder(false);
+      fetchMaterials(); // Re-sync folders list after post
+    }
   };
 
   if (loading) {
@@ -413,9 +449,10 @@ export default function CourseDetailsPage() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#16623f] px-4 py-2 text-sm font-semibold text-white hover:bg-[#104d32]"
+                  disabled={savingFolder}
+                  className="rounded-xl bg-[#16623f] px-4 py-2 text-sm font-semibold text-white hover:bg-[#104d32] disabled:opacity-70"
                 >
-                  Create folder
+                  {savingFolder ? 'Creating...' : 'Create folder'}
                 </button>
               </div>
             </form>
@@ -437,7 +474,9 @@ export default function CourseDetailsPage() {
                     <Folder className="h-6 w-6" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-slate-900 dark:text-white">{folder.title}</h3>
+                    <h3 className="font-semibold text-slate-900 dark:text-white">
+                      {folder.name || folder.title}
+                    </h3>
                     <p className="mt-1 text-sm text-slate-500">Open folder contents</p>
                   </div>
                   <ChevronRight className="h-5 w-5 shrink-0 text-slate-400 transition group-hover:text-[#16623f]" />

@@ -2,8 +2,6 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { coursesApi } from '../api/courses';
-import { getLatestUnseenAnnouncement } from '../utils/announcementNotifications';
-import { fetchAnnouncementsForCourses } from '../utils/fetchCourseAnnouncements';
 import { extractCoursesList } from '../utils/media';
 import { isInstructor } from '../utils/roles';
 
@@ -45,37 +43,46 @@ export default function Navbar({ darkMode, setDarkMode }) {
 
     let mounted = true;
 
-    const loadNotifications = async () => {
+    // Fetch all unread notifications across enrolled courses
+    const loadUnreadNotifications = async () => {
       try {
         const response = await coursesApi.getmyCourses(user.id);
         const courses = extractCoursesList(response?.data);
-        const announcementsMap = await fetchAnnouncementsForCourses(courses);
 
-        if (!mounted) return;
+        // Fetch announcements/user-notifications for each course
+        const notificationsPromises = courses.map(async (course) => {
+          try {
+            const res = await coursesApi.getCourseAnnouncements(course.id || course.course);
+            const list = extractCoursesList(res?.data);
+            // Filter unread items only
+            return list
+              .filter((item) => !item.is_read)
+              .map((item) => ({
+                id: item.id,
+                courseId: course.id || course.course,
+                courseTitle: course.title || course.course_title,
+                title: item.title,
+              }));
+          } catch {
+            return [];
+          }
+        });
 
-        const notifications = courses
-          .map((course) => {
-            const announcements = announcementsMap[String(course.id)] || [];
-            const unseen = getLatestUnseenAnnouncement(user.id, course.id, announcements);
-            if (!unseen) return null;
-            return {
-              courseId: course.id,
-              courseTitle: course.title,
-              announcement: unseen,
-            };
-          })
-          .filter(Boolean);
+        const results = await Promise.all(notificationsPromises);
+        const unreadList = results.flat();
 
-        setCourseNotifications(notifications);
+        if (mounted) {
+          setCourseNotifications(unreadList);
+        }
       } catch {
         if (mounted) setCourseNotifications([]);
       }
     };
 
-    loadNotifications();
+    loadUnreadNotifications();
 
     const handleAnnouncementsSeen = () => {
-      loadNotifications();
+      loadUnreadNotifications();
     };
 
     window.addEventListener('announcements-seen', handleAnnouncementsSeen);
@@ -97,6 +104,9 @@ export default function Navbar({ darkMode, setDarkMode }) {
   }
   const navItems = navigationFor(user.role);
   const displayName = user.username || user.name || user.email?.split('@')[0] || 'Account';
+
+  // Total unread notifications count
+  const unreadCount = courseNotifications.length;
 
   return (
     <div className="sticky top-0 z-50 bg-slate-50/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 backdrop-blur-sm">
@@ -136,6 +146,7 @@ export default function Navbar({ darkMode, setDarkMode }) {
               </span>
             </button>
 
+            {/* Notifications Icon and Counter */}
             <div className="relative" ref={notificationsRef}>
               <button
                 type="button"
@@ -144,9 +155,9 @@ export default function Navbar({ darkMode, setDarkMode }) {
                 aria-label="Course announcements"
               >
                 <span className="material-symbols-outlined">notifications</span>
-                {!userIsInstructor && courseNotifications.length > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white">
-                    {courseNotifications.length}
+                {!userIsInstructor && unreadCount > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white shadow-sm">
+                    {unreadCount}
                   </span>
                 )}
               </button>
@@ -154,26 +165,28 @@ export default function Navbar({ darkMode, setDarkMode }) {
               {notificationsOpen && !userIsInstructor && (
                 <div className="absolute right-0 top-full mt-3 w-80 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-950">
                   <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white">Announcements</p>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                      Unread Announcements ({unreadCount})
+                    </p>
                   </div>
-                  {courseNotifications.length === 0 ? (
+                  {unreadCount === 0 ? (
                     <p className="px-4 py-5 text-sm text-slate-500 dark:text-slate-400">
                       No new announcements.
                     </p>
                   ) : (
                     <div className="max-h-80 overflow-y-auto">
-                      {courseNotifications.map(({ courseId, courseTitle, announcement }) => (
+                      {courseNotifications.map((notif) => (
                         <Link
-                          key={`${courseId}-${announcement.id}`}
-                          to={`/my-courses/${courseId}`}
+                          key={notif.id}
+                          to={`/my-courses/${notif.courseId}/announcements`}
                           onClick={() => setNotificationsOpen(false)}
                           className="block border-b border-slate-100 px-4 py-3 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900"
                         >
                           <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">
-                            {courseTitle}
+                            {notif.courseTitle}
                           </p>
                           <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
-                            {announcement.title}
+                            {notif.title}
                           </p>
                         </Link>
                       ))}

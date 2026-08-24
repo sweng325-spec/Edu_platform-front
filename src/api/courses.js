@@ -39,4 +39,8 @@ export const coursesApi = {
 
   getFolders: (courseId) => 
     API.get(`courses/${courseId}/folders/`),
+
+  // Add this inside your coursesApi object
+  createFolder: (courseId, folderData) =>
+  API.post(`courses/${courseId}/folders/`, folderData),
 };

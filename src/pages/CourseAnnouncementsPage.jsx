@@ -38,7 +38,6 @@ export default function CourseAnnouncementsPage() {
     if (instructorView) return;
     try {
       await coursesApi.updateCourseNotifications(courseId);
-      // Force is_read to true so the white background and checkmarks apply instantly
       setAnnouncements((prev) =>
         prev.map((item) => ({
           ...item,
@@ -50,29 +49,40 @@ export default function CourseAnnouncementsPage() {
     }
   };
 
-  // 2. Mark a SPECIFIC announcement as read when clicking the check icon (Students only)
-  const handleAnnouncementClick = async (e, announcementId, currentReadStatus) => {
+  // 2. Mark a SPECIFIC announcement as read (Students only)
+  const handleAnnouncementClick = async (e, item) => {
     e.stopPropagation();
-    if (instructorView || currentReadStatus) return;
-    
-    try {
-      await coursesApi.updateOneCourseNotifcation(announcementId);
+    if (instructorView || item.is_read) return;
 
-      // Update local state for that single item
-      setAnnouncements((prev) =>
-        prev.map((item) =>
-          item.id === announcementId
-            ? { ...item, is_read: true }
-            : item
-        )
-      );
+    // Use announcement ID or user notification ID based on payload structure
+    const notifId = item.id || item.announcement;
+
+    // Optimistic UI Update: change color to white instantly
+    setAnnouncements((prev) =>
+      prev.map((notif) =>
+        notif.id === item.id ? { ...notif, is_read: true } : notif
+      )
+    );
+
+    try {
+      await coursesApi.updateOneCourseNotifcation(notifId);
     } catch (err) {
       console.error('Failed to mark announcement as read', err);
+      // Rollback on failure
+      setAnnouncements((prev) =>
+        prev.map((notif) =>
+          notif.id === item.id ? { ...notif, is_read: false } : notif
+        )
+      );
     }
   };
 
   if (loading) {
-    return <div className="p-6 text-center text-sm text-slate-500">Loading announcements...</div>;
+    return (
+      <div className="p-6 text-center text-sm text-slate-500">
+        Loading announcements...
+      </div>
+    );
   }
 
   return (
@@ -89,8 +99,12 @@ export default function CourseAnnouncementsPage() {
       {/* Header and Student-only "Mark All as Read" button */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">All Course Announcements</h1>
-          <p className="text-sm text-slate-500">Stay up to date with updates from your instructor.</p>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">
+            All Course Announcements
+          </h1>
+          <p className="text-sm text-slate-500">
+            Stay up to date with updates from your instructor.
+          </p>
         </div>
 
         {!instructorView && (
@@ -113,8 +127,8 @@ export default function CourseAnnouncementsPage() {
           </div>
         ) : (
           announcements.map((item) => {
-            // Explicitly evaluate using item.is_read from the backend database response
             const isRead = Boolean(item.is_read);
+
             return (
               <div
                 key={item.id}
@@ -126,12 +140,20 @@ export default function CourseAnnouncementsPage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
-                    <span className={`mt-1 rounded-xl p-2 ${isRead ? 'bg-slate-100 text-slate-500 dark:bg-slate-800' : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-200'}`}>
+                    <span
+                      className={`mt-1 rounded-xl p-2 ${
+                        isRead
+                          ? 'bg-slate-100 text-slate-500 dark:bg-slate-800'
+                          : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-200'
+                      }`}
+                    >
                       <Bell className="h-4 w-4" />
                     </span>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-slate-900 dark:text-white">{item.title}</h3>
+                        <h3 className="font-semibold text-slate-900 dark:text-white">
+                          {item.title}
+                        </h3>
                         {!isRead && !instructorView && (
                           <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900 dark:bg-amber-900 dark:text-amber-200">
                             New
@@ -147,13 +169,13 @@ export default function CourseAnnouncementsPage() {
                     </div>
                   </div>
 
-                  {/* Individual Read Action Button / Checkmark (Students only) */}
+                  {/* Individual Read Action Button */}
                   {!instructorView && (
                     <button
                       type="button"
-                      onClick={(e) => handleAnnouncementClick(e, item.id, isRead)}
-                      className="group/btn p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-                      title={isRead ? "Read" : "Click to mark as read"}
+                      onClick={(e) => handleAnnouncementClick(e, item)}
+                      className="group/btn rounded-lg p-2 transition hover:bg-slate-100 dark:hover:bg-slate-800"
+                      title={isRead ? 'Read' : 'Click to mark as read'}
                     >
                       {isRead ? (
                         <CheckCheck className="h-5 w-5 text-emerald-600" />
