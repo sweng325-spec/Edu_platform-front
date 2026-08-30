@@ -1,5 +1,5 @@
 export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://160.60.60.31:8000/api/';
+  import.meta.env.VITE_API_BASE_URL || 'http://160.60.60.19:8000/api/';
 
 export function getApiOrigin() {
   return API_BASE_URL.replace(/\/api\/?$/, '');

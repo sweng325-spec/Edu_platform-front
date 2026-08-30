@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { coursesApi } from '../api/courses';
@@ -43,7 +43,7 @@ export default function Navbar({ darkMode, setDarkMode }) {
 
     let mounted = true;
 
-    // Fetch all unread notifications across enrolled courses
+    // Fetch all unread notifications across enrolled courses (announcements + materials)
     const loadUnreadNotifications = async () => {
       try {
         const response = await coursesApi.getmyCourses(user.id);
@@ -62,6 +62,8 @@ export default function Navbar({ darkMode, setDarkMode }) {
                 courseId: course.id || course.course,
                 courseTitle: course.title || course.course_title,
                 title: item.title,
+                notificationType: item.notification_type,
+                folderId: item.material_folder_id,
               }));
           } catch {
             return [];
@@ -87,11 +89,48 @@ export default function Navbar({ darkMode, setDarkMode }) {
 
     window.addEventListener('announcements-seen', handleAnnouncementsSeen);
 
+    // Also poll periodically so newly-posted announcements/materials show up
+    // in the bell without the student needing to refresh the page.
+    const pollId = window.setInterval(loadUnreadNotifications, 30000);
+
     return () => {
       mounted = false;
       window.removeEventListener('announcements-seen', handleAnnouncementsSeen);
+      window.clearInterval(pollId);
     };
   }, [user?.id, userIsInstructor]);
+
+  // When a student opens a notification from the bell, mark it as read right
+  // away so it disappears from the notification bar automatically.
+  const handleNotificationOpen = useCallback(async (event, notif) => {
+    // Prevent navigation until the server confirms the notification was read.
+    // This makes the bell update reliably even when the target page changes.
+    event.preventDefault();
+    setNotificationsOpen(false);
+
+    // Optimistically remove it so the badge and notification list update instantly.
+    setCourseNotifications((prev) => prev.filter((item) => item.id !== notif.id));
+
+    try {
+      await coursesApi.updateOneCourseNotifcation(notif.id);
+      window.dispatchEvent(new Event('announcements-seen'));
+
+      const targetPath =
+        notif.notificationType === 'MATERIAL'
+          ? notif.folderId
+            ? `/my-courses/${notif.courseId}/materials/${notif.folderId}`
+            : `/my-courses/${notif.courseId}`
+          : `/my-courses/${notif.courseId}/announcements`;
+
+      navigate(targetPath);
+    } catch {
+      // If marking as read failed, restore it and keep the notification visible.
+      setCourseNotifications((prev) => {
+        if (prev.some((item) => item.id === notif.id)) return prev;
+        return [...prev, notif];
+      });
+    }
+  }, [navigate]);
 
   const handleLogout = () => {
     logout();
@@ -166,12 +205,12 @@ export default function Navbar({ darkMode, setDarkMode }) {
                 <div className="absolute right-0 top-full mt-3 w-80 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-950">
                   <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
                     <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                      Unread Announcements ({unreadCount})
+                      Unread Notifications ({unreadCount})
                     </p>
                   </div>
                   {unreadCount === 0 ? (
                     <p className="px-4 py-5 text-sm text-slate-500 dark:text-slate-400">
-                      No new announcements.
+                      No new notifications.
                     </p>
                   ) : (
                     <div className="max-h-80 overflow-y-auto">
@@ -179,7 +218,7 @@ export default function Navbar({ darkMode, setDarkMode }) {
                         <Link
                           key={notif.id}
                           to={`/my-courses/${notif.courseId}/announcements`}
-                          onClick={() => setNotificationsOpen(false)}
+                          onClick={(event) => handleNotificationOpen(event, notif)}
                           className="block border-b border-slate-100 px-4 py-3 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900"
                         >
                           <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">
