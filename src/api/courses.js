@@ -17,6 +17,20 @@ export const coursesApi = {
     }
     return API.post('courses/', formData);
   },
+  update: (courseId, course) => {
+    if (course instanceof FormData) {
+      return API.patch(`courses/${courseId}/`, course);
+    }
+
+    const formData = new FormData();
+    if (course.title !== undefined) formData.append('title', course.title ?? '');
+    if (course.description !== undefined) formData.append('description', course.description ?? '');
+    if (course.image) {
+      formData.append('image', course.image);
+    }
+    return API.patch(`courses/${courseId}/`, formData);
+  },
+  delete: (courseId) => API.delete(`courses/${courseId}/`),
   enroll: (courseId) => API.post(`courses/${courseId}/enroll/`),
   getmyCourses: (studentId) => API.get(`courses/students/${studentId}/courses`),
   getCourseStudents: (courseId) => API.get(`courses/${courseId}/students/`),

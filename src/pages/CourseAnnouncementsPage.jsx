@@ -44,6 +44,8 @@ export default function CourseAnnouncementsPage() {
           is_read: true,
         }))
       );
+      // Let the navbar know so it refreshes/clears the notification badge automatically
+      window.dispatchEvent(new Event('announcements-seen'));
     } catch (err) {
       console.error('Failed to mark all announcements as read', err);
     }
@@ -66,6 +68,8 @@ export default function CourseAnnouncementsPage() {
 
     try {
       await coursesApi.updateOneCourseNotifcation(notifId);
+      // Let the navbar know so it refreshes/clears the notification badge automatically
+      window.dispatchEvent(new Event('announcements-seen'));
     } catch (err) {
       console.error('Failed to mark announcement as read', err);
       // Rollback on failure

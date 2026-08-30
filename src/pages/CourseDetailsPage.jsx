@@ -7,7 +7,10 @@ import {
   ChevronRight,
   Folder,
   Megaphone,
+  Pencil,
   Plus,
+  Sparkles,
+  Trash2,
   UserRound,
   UsersRound,
 } from 'lucide-react';
@@ -20,13 +23,14 @@ import {
 import { courseWorkspace } from '../utils/courseWorkspace';
 import { formatDate } from '../utils/format';
 import { extractCoursesList, getCourseImageUrl } from '../utils/media';
-import { isInstructor } from '../utils/roles';
+import { isInstructor, ROLES } from '../utils/roles';
 
 export default function CourseDetailsPage() {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const instructorView = isInstructor(user?.role);
+  const isAdmin = user?.role === ROLES.ADMIN;
 
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -35,6 +39,19 @@ export default function CourseDetailsPage() {
   const [materials, setMaterials] = useState([]);
   const [folders, setFolders] = useState([]);
   const [students, setStudents] = useState([]);
+
+  // Course management (edit/delete) state
+  const isOwner = Boolean(user?.id) && String(course?.teacher) === String(user.id);
+  const canEditCourse = isOwner;
+  const canDeleteCourse = isOwner || isAdmin;
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editImage, setEditImage] = useState(null);
+  const [editImagePreview, setEditImagePreview] = useState('');
+  const [savingCourse, setSavingCourse] = useState(false);
+  const [deletingCourse, setDeletingCourse] = useState(false);
+  const [courseFeedback, setCourseFeedback] = useState({ type: '', text: '' });
 
   // Announcement Form State
   const [announcementForm, setAnnouncementForm] = useState({ title: '', body: '' });
@@ -227,6 +244,68 @@ export default function CourseDetailsPage() {
     }
   };
 
+  const openEditModal = () => {
+    setEditTitle(course?.title || '');
+    setEditDescription(course?.description || '');
+    setEditImage(null);
+    setEditImagePreview('');
+    setCourseFeedback({ type: '', text: '' });
+    setIsEditOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setIsEditOpen(false);
+    if (editImagePreview) {
+      URL.revokeObjectURL(editImagePreview);
+    }
+    setEditImage(null);
+    setEditImagePreview('');
+  };
+
+  const handleEditImageChange = (event) => {
+    const file = event.target.files?.[0] || null;
+    if (editImagePreview) {
+      URL.revokeObjectURL(editImagePreview);
+    }
+    setEditImage(file);
+    setEditImagePreview(file ? URL.createObjectURL(file) : '');
+  };
+
+  const handleUpdateCourse = async (event) => {
+    event.preventDefault();
+    setSavingCourse(true);
+    setCourseFeedback({ type: '', text: '' });
+
+    try {
+      const res = await coursesApi.update(courseId, {
+        title: editTitle.trim(),
+        description: editDescription.trim(),
+        image: editImage,
+      });
+      setCourse((current) => ({ ...current, ...res.data }));
+      closeEditModal();
+      setCourseFeedback({ type: 'success', text: 'Course updated successfully.' });
+    } catch (err) {
+      setCourseFeedback({ type: 'error', text: err.userMessage || 'Failed to update course.' });
+    } finally {
+      setSavingCourse(false);
+    }
+  };
+
+  const handleDeleteCourse = async () => {
+    if (!window.confirm('Delete this course? This action cannot be undone.')) return;
+    setDeletingCourse(true);
+    setCourseFeedback({ type: '', text: '' });
+
+    try {
+      await coursesApi.delete(courseId);
+      navigate(backTo, { replace: true });
+    } catch (err) {
+      setCourseFeedback({ type: 'error', text: err.userMessage || 'Failed to delete course.' });
+      setDeletingCourse(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="mx-auto max-w-6xl rounded-[28px] border border-dashed border-slate-300 bg-white px-6 py-16 text-center dark:border-slate-700 dark:bg-slate-900">
@@ -263,7 +342,125 @@ export default function CourseDetailsPage() {
           <ArrowLeft className="h-4 w-4" />
           {instructorView ? 'Back to my courses' : 'Back to my courses'}
         </Link>
+
+        {(canEditCourse || canDeleteCourse) && (
+          <div className="flex items-center gap-2">
+            {canEditCourse && (
+              <button
+                type="button"
+                onClick={openEditModal}
+                className="inline-flex items-center gap-2 rounded-xl border border-[#dbe7dc] bg-white px-4 py-2 text-sm font-semibold text-[#16623f] transition hover:bg-[#edf5ef] dark:border-slate-700 dark:bg-slate-900 dark:text-emerald-300"
+              >
+                <Pencil className="h-4 w-4" /> Edit course
+              </button>
+            )}
+            {canDeleteCourse && (
+              <button
+                type="button"
+                onClick={handleDeleteCourse}
+                disabled={deletingCourse}
+                className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-70 dark:border-rose-900 dark:bg-slate-900 dark:text-rose-300"
+              >
+                <Trash2 className="h-4 w-4" /> {deletingCourse ? 'Deleting...' : 'Delete course'}
+              </button>
+            )}
+          </div>
+        )}
       </div>
+
+      {courseFeedback.text && (
+        <div
+          className={`rounded-2xl border px-4 py-3 text-sm ${
+            courseFeedback.type === 'success'
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200'
+              : 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200'
+          }`}
+        >
+          {courseFeedback.text}
+        </div>
+      )}
+
+      {isEditOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-xl rounded-[28px] border border-[#dbe7dc] bg-white p-6 shadow-[0_20px_50px_rgba(17,74,54,0.18)] dark:border-slate-800 dark:bg-slate-900">
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.12em] text-emerald-700">Edit course</p>
+                <h2 className="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">Update course details</h2>
+              </div>
+              <button
+                type="button"
+                onClick={closeEditModal}
+                className="rounded-full border border-slate-200 px-2.5 py-1.5 text-sm text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateCourse} className="space-y-4" encType="multipart/form-data">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Course title</label>
+                <input
+                  aria-label="Course title"
+                  placeholder="Course title"
+                  required
+                  value={editTitle}
+                  onChange={(event) => setEditTitle(event.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Description</label>
+                <textarea
+                  aria-label="Course description"
+                  placeholder="What will students learn?"
+                  required
+                  value={editDescription}
+                  onChange={(event) => setEditDescription(event.target.value)}
+                  rows="5"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Course image (optional)</label>
+                <input
+                  aria-label="Course image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleEditImageChange}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-100 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-emerald-800 dark:border-slate-700 dark:bg-slate-800"
+                />
+                {(editImagePreview || imageUrl) && (
+                  <img
+                    src={editImagePreview || imageUrl}
+                    alt="Course preview"
+                    className="mt-3 h-36 w-full rounded-2xl object-cover"
+                  />
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closeEditModal}
+                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingCourse}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#16623f] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#104d32] disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  <Sparkles className="h-4 w-4" /> {savingCourse ? 'Saving...' : 'Save changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* HEADER HERO BANNER */}
       <section className="overflow-hidden rounded-[30px] border border-[#dbe7dc] bg-white shadow-[0_18px_45px_-28px_rgba(17,74,54,0.55)] dark:border-slate-800 dark:bg-slate-900">
