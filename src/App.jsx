@@ -30,7 +30,13 @@ import AdminDashboard from './pages/AdminDashboard';
 import AccessDenied from './pages/AccessDenied';
 import RoleFeaturePage from './pages/RoleFeaturePage';
 import MyCoursesPage from './pages/MyCoursesPage';
-import Profile from './pages/Profile'; // Import your Profile page
+import Profile from './pages/Profile';
+import InstructorQuizzesPage from './pages/InstructorQuizzesPage';
+import StudentQuizzesPage from './pages/StudentQuizzesPage';
+import QuizTakePage from './pages/QuizTakePage';
+import StudentAssignmentsPage from './pages/StudentAssignmentsPage';
+import InstructorAssignmentsPage from './pages/InstructorAssignmentsPage';
+
 
 import { ROLES } from './utils/roles';
 
@@ -74,6 +80,7 @@ function Layout({ darkMode, setDarkMode }) {
           <Route path="/instructor/courses/:courseId/materials/:folderType" element={<InstructorRoute><CourseMaterialsFolderPage /></InstructorRoute>} />
           <Route path="/instructor/courses/:courseId/announcements" element={<InstructorRoute><CourseAnnouncementsPage /></InstructorRoute>} />
           <Route path="/instructor/todos" element={<InstructorRoute><InstructorTodosPage /></InstructorRoute>} />
+          <Route path="/instructor/quizzes" element={<InstructorRoute><InstructorQuizzesPage /></InstructorRoute>} />
           <Route path="/instructor/:feature" element={<InstructorRoute><RoleFeaturePage /></InstructorRoute>} />
 
           <Route path="/student" element={<StudentRoute><DashboardPage /></StudentRoute>} />
@@ -82,10 +89,12 @@ function Layout({ darkMode, setDarkMode }) {
           <Route path="/my-courses/:courseId" element={<StudentRoute><CourseDetailsPage /></StudentRoute>} />
           <Route path="/my-courses/:courseId/materials/:folderType" element={<StudentRoute><CourseMaterialsFolderPage /></StudentRoute>} />
           <Route path="/my-courses/:courseId/announcements" element={<StudentRoute><CourseAnnouncementsPage /></StudentRoute>} />
-          <Route path="/assignments" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />
-          <Route path="/quizzes" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />
+          <Route path="/quizzes" element={<StudentRoute><StudentQuizzesPage /></StudentRoute>} />
+          <Route path="/quizzes/:quizId" element={<StudentRoute><QuizTakePage /></StudentRoute>} />
           <Route path="/progress" element={<StudentRoute><RoleFeaturePage /></StudentRoute>} />
           <Route path="/notifications" element={<RoleRoute allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]}><RoleFeaturePage /></RoleRoute>} />
+          <Route element={<StudentRoute><StudentAssignmentsPage /></StudentRoute>} path="/assignments" />
+          <Route element={<InstructorRoute><InstructorAssignmentsPage /></InstructorRoute>} path="/instructor/assignments" />
           {/* <Route path="/profile" element={<ProtectedRoute><RoleFeaturePage /></ProtectedRoute>} /> */}
           // Inside your router setup:
           <Route path="/profile" element={<Profile />} />

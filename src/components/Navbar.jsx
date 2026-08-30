@@ -2,8 +2,10 @@ import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { coursesApi } from '../api/courses';
+import { quizzesApi } from '../api/quizzes';
 import { extractCoursesList } from '../utils/media';
 import { isInstructor } from '../utils/roles';
+import { formatDeadline } from '../utils/quizzes';
 
 const navigationFor = (role) => {
   if (role === 'ADMIN') return [{ to: '/admin', label: 'Dashboard' }, { to: '/admin/users', label: 'Users' }, { to: '/admin/students', label: 'Students' }, { to: '/admin/instructors', label: 'Instructors' }, { to: '/admin/courses', label: 'Courses' }, { to: '/admin/enrollments', label: 'Enrollments' }, { to: '/admin/statistics', label: 'Statistics' }, { to: '/admin/settings', label: 'Settings' }];
@@ -71,7 +73,22 @@ export default function Navbar({ darkMode, setDarkMode }) {
         });
 
         const results = await Promise.all(notificationsPromises);
-        const unreadList = results.flat();
+        const courseNotifs = results.flat();
+
+        const quizNotifs = quizzesApi
+          .getStudentNotifications(user.id)
+          .filter((item) => !item.is_read)
+          .map((item) => ({
+            id: item.id,
+            courseId: item.courseId,
+            courseTitle: item.courseTitle,
+            title: item.title,
+            notificationType: 'QUIZ',
+            quizId: item.quizId,
+            deadline: item.deadline,
+          }));
+
+        const unreadList = [...quizNotifs, ...courseNotifs];
 
         if (mounted) {
           setCourseNotifications(unreadList);
@@ -112,15 +129,21 @@ export default function Navbar({ darkMode, setDarkMode }) {
     setCourseNotifications((prev) => prev.filter((item) => item.id !== notif.id));
 
     try {
-      await coursesApi.updateOneCourseNotifcation(notif.id);
+      if (notif.notificationType === 'QUIZ') {
+        await quizzesApi.markNotificationRead(notif.id);
+      } else {
+        await coursesApi.updateOneCourseNotifcation(notif.id);
+      }
       window.dispatchEvent(new Event('announcements-seen'));
 
       const targetPath =
-        notif.notificationType === 'MATERIAL'
-          ? notif.folderId
-            ? `/my-courses/${notif.courseId}/materials/${notif.folderId}`
-            : `/my-courses/${notif.courseId}`
-          : `/my-courses/${notif.courseId}/announcements`;
+        notif.notificationType === 'QUIZ'
+          ? `/quizzes/${notif.quizId}`
+          : notif.notificationType === 'MATERIAL'
+            ? notif.folderId
+              ? `/my-courses/${notif.courseId}/materials/${notif.folderId}`
+              : `/my-courses/${notif.courseId}`
+            : `/my-courses/${notif.courseId}/announcements`;
 
       navigate(targetPath);
     } catch {
@@ -217,7 +240,11 @@ export default function Navbar({ darkMode, setDarkMode }) {
                       {courseNotifications.map((notif) => (
                         <Link
                           key={notif.id}
-                          to={`/my-courses/${notif.courseId}/announcements`}
+                          to={
+                            notif.notificationType === 'QUIZ'
+                              ? `/quizzes/${notif.quizId}`
+                              : `/my-courses/${notif.courseId}/announcements`
+                          }
                           onClick={(event) => handleNotificationOpen(event, notif)}
                           className="block border-b border-slate-100 px-4 py-3 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900"
                         >
@@ -227,6 +254,11 @@ export default function Navbar({ darkMode, setDarkMode }) {
                           <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
                             {notif.title}
                           </p>
+                          {notif.notificationType === 'QUIZ' && notif.deadline && (
+                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                              Due {formatDeadline(notif.deadline)}
+                            </p>
+                          )}
                         </Link>
                       ))}
                     </div>
